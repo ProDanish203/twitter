@@ -17,7 +17,8 @@ const config: Config = {
         placeolder: "#696d72",
       },
       screens:{
-        xs: "550px"
+        xs: "550px",
+        xss: "450px",
       }
     },
   },

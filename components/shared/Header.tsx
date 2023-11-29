@@ -16,7 +16,7 @@ export const Header = ({label, isBack}: Props) => {
     }, [router]);
 
   return (
-    <div className="fixed top-0 w-full bg-bg z-20">
+    <div className="fixed top-0 left-50 rgiht-50 w-full bg-bg z-20">
         <div className="flex items-center gap-4 sm:p-7 p-5 border-b-[1px] border-neutral-800 w-full">
             {isBack && (
             <div onClick={handleReturn} className="cursor-pointer">

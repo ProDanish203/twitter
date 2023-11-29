@@ -1,19 +1,16 @@
 import { SearchBar } from "@/components/forms";
+import { exploreUsers } from "@/lib/actions/User";
+import Image from "next/image";
+import Link from "next/link";
+import { FollowBtn } from "../helpers";
 
-export const RightSidebar = () => {
+export const RightSidebar = async () => {
 
-  // const {data: session} = useSession()
-    //@ts-ignore
-    // const {data, mutate, isLoading, error} = useSWR(`/api/users`, fetcher);
-    
-    // const handleFollow = async (id:string) => {
-    //     //@ts-ignore
-    //     const {isFollowing, toggleFollow} = followUser(id, session?.user.id)
-    //     toggleFollow()
-    // }
+  const {data, success} = await exploreUsers();
+  if(!success) return;
 
   return (
-    <div className='h-screen lg:min-w-[200px] max-w-[350px] pt-28 lg:w-full w-fit sticky p-7 top-0 left-0 border-l-[1px] border-neutral-800 overflow-hidden'>
+    <div className='h-screen lg:min-w-[200px] max-w-[350px] pt-28 lg:w-full w-fit sticky p-7 top-0 right-0 border-l-[1px] border-neutral-800 overflow-hidden'>
         
       <div className='flex flex-col gap-5 w-full items-start justify-between'>
 
@@ -22,29 +19,27 @@ export const RightSidebar = () => {
           <div className='bg-darkAccent py-5 w-[300px] rounded-md'>
               
               <h2 className='text-text text-xl font-semibold mb-4 px-5'>Who to follow</h2>
-              {/* <div className='flex flex-col gap-2'>
+              <div className='flex flex-col gap-2'>
               {data && data.length > 0 && 
               data.map((user:any) => (
-              <div key={user.id} className='flex items-center w-full justify-between gap-3 px-5 py-2 hover:bg-placeolder transition'>
+              <div key={user._id} className='flex items-center w-full justify-between gap-3 px-5 py-2 hover:bg-placeolder transition'>
 
                   <div className='flex items-center gap-2'>
-                      <Link href={`/profile/${user.id}`} className='relative w-10 h-10 object-cover'>
-                          <Image src={user.image || "/images/dummyUser.png"} className='rounded-full object-cover' fill alt='username'/>
+                      <Link href={`/profile/${user._id}`} className='relative  object-cover'>
+                          <Image src={user.image || "/dummyUser.png"} className='rounded-full object-cover w-10 h-10' height={100} width={100} alt='username'/>
                       </Link>
 
-                      <div>
+                      <Link href={`/profile/${user._id}`}>
                           <h6 className='text-text font-semibold md:text-md'>{user.name}</h6>
                           <p className='text-whiteAccent text-sm'>@{user.username}</p>
-                      </div>
+                      </Link>
                   </div>
 
-                  <button className='rounded-full py-1 px-3 bg-white text-bg ' 
-                  // onClick={() => handleFollow(user.id)}
-                  >Follow</button>
+                  {/* <FollowBtn followId={user._id} followers={user.followings} icon={false}/> */}
               </div>
               ))
               }
-          </div> */}
+          </div>
 
           </div>
       </div>

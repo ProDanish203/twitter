@@ -1,0 +1,9 @@
+
+
+export const ImageUpload = () => {
+  return (
+    <>
+    
+    </>
+  )
+}

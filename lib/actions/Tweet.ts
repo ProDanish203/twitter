@@ -7,9 +7,28 @@ import { getAuthSession } from "@/utils/auth";
 
 interface TweetProps{
     caption: string;
-    image: string;
+    image?: string;
     parentId?: string; 
     pathname: string;
+}
+
+export const getFeed = async (currentUser: string) => {
+    try{
+        await connectDb();
+        // const feed = await Tweet.find({author: {$ne: currentUser}});
+        const feed = await Tweet.find({ parentId: { $exists: false } })
+        .populate({path: 'author', model: User, select: '_id name username image'})
+        .sort({createdAt: -1})
+
+        if(feed){
+            return {feed, success: true, message: "Tweet fecthed successfully"}
+        }else{
+            return {success: false, message: "Error while fetching tweet"}
+        }
+
+    }catch(error:any){
+        throw new Error(`Failed to fetch tweet: ${error.message}`)
+    }
 }
 
 export const getTweet = async (id: string) => {
@@ -19,10 +38,24 @@ export const getTweet = async (id: string) => {
             return { success: false, message: "Authentication error"}
     
         await connectDb();
-        const tweet = await Tweet.findById(id);
+        const tweet = await Tweet.findById(id)
+        .populate({
+            path: 'author', 
+            model: User, 
+            select: '_id name username image'
+        })
+        .populate({
+            path: 'children', 
+            model: Tweet, 
+            populate: {
+                path: 'author',
+                model: User,
+                select: '_id name username image'
+            }
+        })
 
         if(tweet){
-            return {success: true, message: "Tweet fecthed successfully"}
+            return {tweet, success: true, message: "Tweet fecthed successfully"}
         }else{
             return {success: false, message: "Error while fetching tweet"}
         }
@@ -42,7 +75,8 @@ export const addTweet = async ({caption, image, pathname, parentId}: TweetProps)
         await connectDb();
         const tweet = await Tweet.create({
             author: session.user.id,
-            caption, image
+            caption, image: image || '',
+            parentId: parentId || undefined
         })
 
         if(parentId){
@@ -59,6 +93,10 @@ export const addTweet = async ({caption, image, pathname, parentId}: TweetProps)
             });
         }
     
+        await User.findByIdAndUpdate(session.user.id, {
+            $push: { tweets: tweet._id },
+        })
+
         revalidatePath(pathname)
         if(tweet){
             return {success: true, message: "Tweet composed successfully"}

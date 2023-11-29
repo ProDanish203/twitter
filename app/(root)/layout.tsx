@@ -1,20 +1,27 @@
 import type { Metadata } from 'next'
-import './globals.css'
+import '../globals.css'
 import { AuthProvider } from '@/store/AuthProvider'
 import { BottomBar, RightSidebar, Sidebar } from '@/components/shared'
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { getAuthSession } from '@/utils/auth';
+import { redirect } from 'next/navigation';
+import { ComposeBtn } from '@/components/helpers';
 
 export const metadata: Metadata = {
   title: 'X | Formerly Twitter',
   description: 'Take a glimpse on how things can be built, by Danish Siddiqui',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+
+  const session = await getAuthSession();
+  if(!session) return redirect('/signin')
+
   return (
     <html lang="en">
       <head>
@@ -24,15 +31,15 @@ export default function RootLayout({
       <AuthProvider>
         <ToastContainer/>
 
-        <main className='h-[200vh] bg-black'>
+        <main className='min-h-screen bg-black'>
 
-          <div className='container h-screen w-screen mx-auto'>
+          <div className='container w-screen mx-auto'>
 
             <div className='relative max-w-7xl flex mx-auto w-full'>
-              <div className='max-xs:hidden'>
+              <div className='max-xs:hidden '>
                 <Sidebar/>
               </div>
-              <div className='relative flex-1'>
+              <div className='relative min-h-screen w-full'>
                 <div className='pt-20'>
                   {children}
                 </div>
@@ -42,7 +49,7 @@ export default function RootLayout({
               </div>
               
               <div className='xs:hidden'>
-                {/* <ComposeBtn/> */}
+                <ComposeBtn/>
                 <BottomBar/>
               </div>
             </div>
