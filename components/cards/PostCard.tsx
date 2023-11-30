@@ -47,7 +47,7 @@ export const PostCard = ({data, isComments, isMedia}: Props) => {
 
         {isMedia && (
             <div className="relative mt-3 mb-4">
-            <Image src="/picture.jpg" width={500} height={500} alt="lorem ipsum"
+            <Image src={data.image} width={1000} height={1000} alt="lorem ipsum"
             className="object-cover rounded-xl max-w-[500px] w-full h-[500px]"
             />
         </div>

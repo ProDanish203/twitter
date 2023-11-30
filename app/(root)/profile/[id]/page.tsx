@@ -23,7 +23,7 @@ const Profile = async ({params}: Params) => {
       <Header isBack={true} label={data?._id == id ? `Your Profile`: `${user.username}'s Profile`}/>
     </div>
     {/* @ts-ignore */}
-    <ProfileHeader pfp={user?.image} username={user?.username} name={user?.name} bio={user?.bio} currentUserProfile={data?._id == id} createdAt={user?.createdAt} following={user?.followings} followers={user?.followers} userId={user?._id} banner={user?.coverImage}/>
+    <ProfileHeader pfp={user?.image} username={user?.username} name={user?.name} bio={user?.bio} currentUserProfile={data?._id == id} createdAt={user?.createdAt} following={user?.followings} followers={user?.followers} userId={user?._id} banner={user?.banner}/>
 
     <ProfileFeed userId={user?._id} tweets={user?.tweets}/>
       

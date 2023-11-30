@@ -6,6 +6,8 @@ import { getUser } from '@/lib/actions/User';
 import { usePathname } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { addTweet } from '@/lib/actions/Tweet';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { app } from "@/utils/firebase";
 
 export const Reply = ({postId}: {postId: string}) => {
 
@@ -14,6 +16,7 @@ export const Reply = ({postId}: {postId: string}) => {
     const [caption, setCaption] = useState("");
     const [file, setFile] = useState("");
     const [image, setImage] = useState("");
+    const [progress, setProgress] = useState(0);
 
     const pathname = usePathname();
 
@@ -27,9 +30,53 @@ export const Reply = ({postId}: {postId: string}) => {
         getData();
     }, [session]);
 
+    const uploadFile = (file:any) => {
+        if(!file) return;
+        const fileName = new Date().getTime() + file.name;
+          
+        const storage = getStorage(app);
+        const storageRef = ref(storage, `/tweets/${fileName}`);
+
+    
+        const uploadTask = uploadBytesResumable(storageRef, file);
+            
+        uploadTask.on('state_changed', 
+        (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log('Upload is ' + progress + '% done');
+            switch (snapshot.state) {
+            case 'paused':
+                console.log('Upload is paused');
+                break;
+            case 'running':
+                console.log('Upload is running');
+                setProgress(progress)
+                break;
+            }
+        }, 
+        (error) => {
+            console.log(error);
+        }, 
+        () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              setImage(downloadURL)
+            });
+        }
+    );
+    }
+    
+    useEffect(() => {
+        file && uploadFile(file);
+    }, [file])
+
     const addComment = async (e: FormEvent) => {
         e.preventDefault();
         try{
+            if(!caption) return toast.error("Textfield cannot be empty")
+            if(file && progress >= 0 && progress != 100) return toast.error("Uploading media, please wait")
+
+            if(file && image.length <= 0) return toast.error("Uploading media, please wait")
+        
             const {success} = await addTweet({
                 caption,
                 image,
@@ -41,6 +88,7 @@ export const Reply = ({postId}: {postId: string}) => {
                 setCaption("");
                 setFile("");
                 setImage("");
+                setProgress(0);
             }
         }catch(error){
             toast.error("Something went wrong");
@@ -71,7 +119,13 @@ export const Reply = ({postId}: {postId: string}) => {
         <div className="flex items-center justify-between gap-2">
 
         <div className="text-primary flex gap-5">
+          <input type="file" id="image" 
+          className="hidden"
+          onChange={(e:any) => setFile(e.target.files[0])}
+          />
+          <label htmlFor="image">
             <i className="far fa-image cursor-pointer"></i>
+          </label>
         </div>
 
         <button 
@@ -79,6 +133,22 @@ export const Reply = ({postId}: {postId: string}) => {
         className="text-text bg-primary rounded-full px-5 py-1">Reply</button>
 
         </div>
+
+        {progress > 0 && (
+        <div className="max-xs:mt-5 flex items-center gap-2">
+            
+        <div id="progress-container" className='mt-2relative max-h-[20px] sm:w-[300px] xs:w-[250px] w-[200px] h-[10px] rounded-md overflow-hidden'>
+
+            <div id="progress-bar" style={{width: progress + '%', height: "100%"}}
+            className='h-full flex items-center justify-center'
+            ></div>
+            
+        </div>
+            <p className="text-text max-xs:text-sm">
+            {progress.toFixed(1)} %
+            </p>
+        </div>
+        )}
 
     </form>
 

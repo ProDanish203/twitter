@@ -13,9 +13,10 @@ const ComposeTweet = async ({searchParams}: Params) => {
 
   const {data, success} = await getUser(searchParams.userid); 
   if(!success) return;
-  console.log(data);
+  
   return (
   <section className='w-full'>
+
     <div>
       <Header isBack={true} label="Compose"/>
     </div>

@@ -19,16 +19,16 @@ interface Props{
 export const ProfileHeader = ({userId, name, username, pfp, banner, bio, createdAt, currentUserProfile, followers, following} : Props) => {
 
     const formattedDate = format(new Date(createdAt), 'MMMM yyyy')
-
+    console.log(banner)
   return (
     <div className='w-full border-b-[1px] border-neutral-800 '>
         <div className='sm:h-[200px] h-[150px] bg-neutral-700 relative w-full'>
             {banner && (
-                <Image src={banner} fill alt='jkhae' className='object-cover'/>
+                <Image src={banner} fill alt={username} className='object-cover'/>
             )}
             <div className='absolute -bottom-10 left-0 right-0 flex items-center justify-between gap-10 sm:px-7 px-5'>
-                <div className='relative md:w-24 md:h-24 w-20 h-20 object-contain'>
-                    <Image src={pfp || "/images/dummyUser.png"} fill alt={username} className='rounded-full object-cover'/>
+                <div className='relative object-contain'>
+                    <Image src={pfp || "/images/dummyUser.png"} width={400} height={400} alt={username} className='rounded-full object-cover md:w-28 md:h-28 w-20 h-20'/>
                 </div>
 
                 <div className='sm:mt-10 mt-16 flex items-center gap-3'>

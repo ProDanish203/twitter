@@ -19,6 +19,16 @@ img {
   -o-border-radius: 12px 12px 0 0;
 }
 
+#progress-container {
+  border: 1px solid #ccc;
+}
+
+#progress-bar {
+  width: 0;
+  background-color: #1d9bf0;
+  color: white;
+}
+
 /* Main Loader Style */
 .lds-ring {
   display: inline-block;

@@ -49,7 +49,7 @@ export default async function RootLayout({
               </div>
               
               <div className='xs:hidden'>
-                <ComposeBtn/>
+                <ComposeBtn userId={session.user.id}/>
                 <BottomBar/>
               </div>
             </div>
