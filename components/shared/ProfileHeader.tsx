@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from "date-fns";
-import { FollowBtn } from '../helpers';
+import { FollowBtn, LogoutBtn } from '../helpers';
 
 interface Props{
     pfp: string;
@@ -34,11 +34,7 @@ export const ProfileHeader = ({userId, name, username, pfp, banner, bio, created
                 <div className='sm:mt-10 mt-16 flex items-center gap-3'>
                 {currentUserProfile ? (
                     <>
-                    <button className="xs:hidden flex items-center gap-5 text-md text-text"
-                    // onClick={handleLogout}
-                    >
-                        <i className="fa-solid fa-arrow-right-from-bracket text-2xl"></i>
-                    </button>
+                    <LogoutBtn/>
 
                     <Link href={`/editProfile/${userId}`}>
                         <button className='rounded-full px-4 py-2 text-text bg-transparent transition-all hover:bg-text hover:text-bg border-[1px] border-text max-sm:text-sm max-sm:py-1 max-sm:px-3 shadow-sm'>Edit Profile</button>

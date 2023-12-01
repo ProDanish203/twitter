@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { updateProfile } from "@/lib/actions/User";
 import Image from "next/image";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
@@ -9,10 +9,11 @@ import { app } from "@/utils/firebase";
 
 interface Props{
     data: any;
-    id:string
+    id:string;
+    redirect:string;
 }
 
-export const Edit = ({id, data}: Props) => {
+export const Edit = ({id, data, redirect}: Props) => {
 
     const router = useRouter();
     const pathname = usePathname();
@@ -83,14 +84,14 @@ export const Edit = ({id, data}: Props) => {
         if(bannerFile && progress >= 0 && progress != 100) return toast.error("Uploading banner, please wait")
 
         try{
-            const {success} = await updateProfile({
+            const {success, message} = await updateProfile({
                 name, username, image, banner, bio, pathname
             })
             if(success){
                 toast.success("Profile updated successfully");
-                router.push(`/profile/${id}`);
+                router.push(redirect);
             } else
-                return toast.error("Unable to edit profile");
+                return toast.error(message);
 
         }catch(error){
             toast.error("Unable to edit profile");

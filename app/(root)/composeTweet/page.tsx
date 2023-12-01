@@ -1,6 +1,7 @@
 import { ComposeXheader } from '@/components/forms';
 import { Header } from '@/components/shared';
 import { getUser } from '@/lib/actions/User';
+import { redirect } from 'next/navigation';
 import React from 'react'
 
 interface Params{
@@ -12,7 +13,7 @@ interface Params{
 const ComposeTweet = async ({searchParams}: Params) => {
 
   const {data, success} = await getUser(searchParams.userid); 
-  if(!success) return;
+  if(!success) return redirect('/');
   
   return (
   <section className='w-full'>

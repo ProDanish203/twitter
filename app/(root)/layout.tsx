@@ -2,15 +2,14 @@ import type { Metadata } from 'next'
 import '../globals.css'
 import { AuthProvider } from '@/store/AuthProvider'
 import { BottomBar, RightSidebar, Sidebar } from '@/components/shared'
-import { ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
 import { getAuthSession } from '@/utils/auth';
 import { redirect } from 'next/navigation';
 import { ComposeBtn } from '@/components/helpers';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'X | Formerly Twitter',
-  description: 'Take a glimpse on how things can be built, by Danish Siddiqui',
+  description: 'X | A social media platform built by Danish Siddiqui, where users can share their daily life routines through tweets and also interact and engage with other users',
 }
 
 export default async function RootLayout({
@@ -29,7 +28,10 @@ export default async function RootLayout({
       </head>
       <body>
       <AuthProvider>
-        <ToastContainer/>
+        <Toaster
+        position="top-center"
+        reverseOrder={false}
+        />
 
         <main className='min-h-screen bg-black'>
 
@@ -40,7 +42,7 @@ export default async function RootLayout({
                 <Sidebar/>
               </div>
               <div className='relative min-h-screen w-full'>
-                <div className='pt-20'>
+                <div className='pt-20 pb-20'>
                   {children}
                 </div>
               </div>

@@ -25,14 +25,14 @@ export const PostCard = ({data, isComments, isMedia}: Props) => {
                 />
             </div>
             </Link>
-            {isComments && (
+            {/* {isComments && (
                 <div className="h-[90%] w-[2px] bg-neutral-700 absolute md:left-8 left-6"/>
-            )}
+            )} */}
         </div>
     {/* Author section */}
     <div className="relative w-full">
 
-        <div className="flex items-center justify-between gap-2 w-full">
+        <div className="flex items-center justify-between gap-2 w-full max-sm:ml-2">
             <div className='flex items-center gap-2'>
                 <Link href={`/profile/${data.author._id}`} className="text-text font-semibold">{data.author.name.substring(0, 10)}</Link> 
                 <Link href={`/profile/${data.author._id}`} className="text-sm text-placeolder">@{data.author.username}</Link>
@@ -43,7 +43,7 @@ export const PostCard = ({data, isComments, isMedia}: Props) => {
 
         <Link href={`/tweet/${data._id}`}>
             
-        <p className="text-text md:text-[15px] max-sm:text-sm my-2">{data.caption}</p>
+        <p className="text-text md:text-[15px] my-2">{data.caption}</p>
 
         {isMedia && (
             <div className="relative mt-3 mb-4">
@@ -56,21 +56,23 @@ export const PostCard = ({data, isComments, isMedia}: Props) => {
 
         <div className="flex items-center justify-between gap-2 max-w-[400px] mb-1">
 
-            <div className="text-placeolder">
-                <i className="far fa-comment mr-2 cursor-pointer"></i>
+            <div className="text-placeolder max-sm:text-sm">
+                <Link href={`/tweet/${data._id}`}>
+                    <i className="far fa-comment mr-2 cursor-pointer"></i>
+                </Link>
                 <span>{data.children.length}</span>
             </div>
 
             <LikeButton likes={data.likes} likedBy={data.likedBy} postId={data._id}/>
 
-            <div className="text-placeolder">
+            <div className="text-placeolder max-sm:text-sm">
                 <i className="fas fa-retweet mr-2 cursor-pointer"></i>
-                <span>10</span>
+                <span>0</span>
             </div>
 
-            <div className="text-placeolder">
+            <div className="text-placeolder max-sm:text-sm">
                 <i className="fas fa-share-nodes mr-2 cursor-pointer"></i>
-                <span>10</span>
+                <span>0</span>
             </div>
 
         </div>

@@ -7,7 +7,6 @@ import { getUser } from '@/lib/actions/User';
 import { useEffect, useState } from 'react';
 
 
-
 export const BottomBar = () => {
 
     const pathName = usePathname();
@@ -33,11 +32,13 @@ export const BottomBar = () => {
         const isActive = (pathName.includes(link.title) && link.path.length > 1) || pathName === link.path;
         // @ts-ignore
           if(link.path === "/profile") link.path = `/profile/${user?._id}`
-
-          return (
+          
+          return(
+          <>
             <Link href={link.path} key={link.path} className={`${isActive ? "text-primary": "text-text"}`}>
-              <i className={`${link.icon} text-xl`}></i>
-            </Link>
+            <i className={`${link.icon} text-xl`}></i>
+          </Link>
+          </>
           )
         } )}
     </nav>

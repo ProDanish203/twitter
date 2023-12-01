@@ -20,7 +20,7 @@ export const LikeButton = ({likes, postId, likedBy}: Props) => {
     }
 
   return (
-    <div className="text-placeolder"
+    <div className="text-placeolder max-sm:text-sm"
     onClick={handleLike}
     >
         {/* @ts-ignore */}

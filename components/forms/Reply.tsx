@@ -4,7 +4,7 @@ import React, { FormEvent, useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react';
 import { getUser } from '@/lib/actions/User';
 import { usePathname } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 import { addTweet } from '@/lib/actions/Tweet';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { app } from "@/utils/firebase";

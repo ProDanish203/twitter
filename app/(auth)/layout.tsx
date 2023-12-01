@@ -1,8 +1,6 @@
 import { AuthProvider } from '@/store/AuthProvider'
 import '../globals.css'
 import type { Metadata } from 'next'
-import { getServerSession } from "next-auth";
-import { GET } from '../api/auth/[...nextauth]/route';
 import { redirect } from "next/navigation";
 import { getAuthSession } from '@/utils/auth';
 
@@ -18,7 +16,6 @@ export default async function RootLayout({
 }) {
 
   const session = await getAuthSession();
-  
   if(session?.user) redirect("/");
 
   return (

@@ -2,6 +2,7 @@ import { PostCard } from '@/components/cards';
 import { Reply } from '@/components/forms';
 import { Header } from '@/components/shared';
 import { getTweet } from '@/lib/actions/Tweet';
+import { redirect } from 'next/navigation';
 
 interface Params{
   params: {
@@ -21,7 +22,7 @@ const Tweet = async ({params}: Params) => {
 
   const {id} = params;
   const {tweet, success} = await getTweet(id);
-  if(!success) return;
+  if(!success) return redirect('/');
 
   return (
     <section>

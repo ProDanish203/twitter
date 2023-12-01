@@ -3,7 +3,7 @@ import { addTweet } from "@/lib/actions/Tweet";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { app } from "@/utils/firebase";
 

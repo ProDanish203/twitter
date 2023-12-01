@@ -12,30 +12,27 @@ interface Params{
 export async function generateMetadata(){
   const {data} = await getCurrentUser();
   return {
-    title: `Update profile ${data.name} | X`,
-    description: `${data.username} | View full profile on X.com`
+    title: `Complete profile ${data.name} | X`,
+    description: `${data.username} | View profile on X.com`
   }
 }
 
-const EditProfile = async ({params}: Params) => {
-
-  const {id} = params;
-  const {data, success} = await getCurrentUser();
-  if(data.id != id) redirect(`/profile/${data.id}`)
-  if(!success) redirect('/')
+const Onboarding = async ({params}:Params ) => {
+    const {id} = params;
+    const {data, success} = await getCurrentUser();
+    if(data.id != id) redirect(`/profile/${data.id}`)
   
-
   return (
     <section className='min-h-screen'>
       <div>
-        <Header isBack={true} label="Edit Profile"/>
+        <Header isBack={true} label="Complete Profile"/>
       </div>
       {data && (
-        <Edit id={id} data={data} redirect={`/profile/${id}`}/>
+        <Edit id={id} data={data} redirect='/'/>
       )}
 
     </section>
   )
 }
 
-export default EditProfile;
+export default Onboarding;

@@ -2,6 +2,7 @@
 import { connectDb } from "@/lib/config/db";
 import User from "@/lib/models/User";
 import Tweet from "@/lib/models/Tweet";
+import Notification from "@/lib/models/Notification";
 import { revalidatePath } from "next/cache";
 import { getAuthSession } from "@/utils/auth";
 
@@ -85,12 +86,23 @@ export const addTweet = async ({caption, image, pathname, parentId}: TweetProps)
             });
             if(!parentTweet)
                 return {success: false, message: "Error while composing tweet"}
-            // Updating the user notifications
+
             const parentAuthorId = parentTweet.author;
-            await User.findByIdAndUpdate(parentAuthorId, {
-                $push: { notifications: tweet._id },
-                $set: { hasNotification: true },
-            });
+            if(parentAuthorId != session.user.id){
+                // Create a new notification document
+                const notif = await Notification.create({
+                    user: parentAuthorId,
+                    author: session.user.id,
+                    link: `/tweet/${tweet.parentId}`,
+                    desc: `commented on your tweet.`,
+                });
+
+                await User.findByIdAndUpdate(notif.user, {
+                    $push: { notifications: notif._id },
+                    $set: { hasNotification: true },
+                }); 
+            }
+            
         }
     
         await User.findByIdAndUpdate(session.user.id, {
@@ -129,13 +141,44 @@ export const likeTweet = async (id:string, pathname:string) => {
         : { $addToSet: { likedBy: session.user.id}, $inc: {  likes: 1}}
 
         const updatedTweet = await Tweet.findByIdAndUpdate(id, updateQuery, {new: true})
-        // Updating the user notifications
-        if (!isLiked && updatedTweet) {
-            const authorId = updatedTweet.author;
-            await User.findByIdAndUpdate(authorId, {
-                $push: { notifications: id },
-                $set: { hasNotification: true },
-            });
+
+        // Create or remove a notification when the tweet is liked or unliked
+        if (updatedTweet) {
+            const authorId = await updatedTweet.author;
+
+            if(authorId != session.user.id){
+
+                if (!isLiked) {
+                    // Create a new notification document
+                    const notif = await Notification.create({
+                        user: authorId,
+                        author: session.user.id,
+                        link: `/tweet/${id}`,
+                        desc: `liked your tweet.`,
+                    });
+
+                    await User.findByIdAndUpdate(notif.user, {
+                        $push: { notifications: notif._id },
+                        $set: { hasNotification: true },
+                    }, {new: true})
+                } 
+                else {
+                    // Find and delete the notification by its _id
+                    const notif = await Notification.findOneAndDelete({
+                        user: authorId,
+                        author: session.user.id,
+                        desc: `liked your tweet.`,
+                    });
+                    // Update the user's notifications
+                    if (notif) {
+                        await User.findByIdAndUpdate(authorId, {
+                            // @ts-ignore
+                            $pull: { notifications: notif._id },
+                            $set: { hasNotification: true },
+                        });
+                    }
+                }
+            }
         }
 
         revalidatePath(pathname)

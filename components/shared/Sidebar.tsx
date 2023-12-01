@@ -45,13 +45,14 @@ export const Sidebar = () => {
                     if((link.path === "/profile") && user) link.path = `/profile/${user._id}`;
                     
                     return (
-                    <Link key={link.path} href={link.path || "/"} className={`${isActive ? "text-primary" : "text-text"} flex items-center gap-5 text-lg`}>
+                    <Link key={link.path} href={link.path || "/"} className={`${isActive ? "text-primary" : "text-text" } flex items-center gap-5 text-lg`}>
                       <i className={`${link.icon} text-2xl`}></i>
                       <p className="max-lg:hidden">{link.title}</p>
                     </Link>      
                 )})
                 }
 
+                {/* Other buttons */}
                 <button className="flex items-center gap-5 text-lg text-text"
                 onClick={handleLogout}
                 >

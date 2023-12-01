@@ -2,6 +2,7 @@
 import { connectDb } from "@/lib/config/db";
 import User from "@/lib/models/User";
 import Tweet from "@/lib/models/Tweet";
+import Notification from "@/lib/models/Notification";
 import { revalidatePath } from "next/cache";
 import { getAuthSession } from "@/utils/auth";
 
@@ -44,7 +45,7 @@ export const getCurrentUser = async () => {
     
         await connectDb();
         const data = await User.findById(session.user.id)
-        .select('_id name username image banner bio location');
+        .select('_id name username image banner bio location hasNotifications onBoarded');
 
         if(data){
             return {data, success: true, message: "User fetched successfully"}
@@ -94,8 +95,13 @@ export const updateProfile = async ({ name, username, image, banner, bio,  pathn
             return { success: false, message: "Authentication error"}
     
         await connectDb();
+
+        const existingUser = await User.findOne({username: username, _id: { $ne: session.user.id }})
+        if(existingUser)
+            return {success: false, message: "Username taken"}
+
         const updateUser = await User.findByIdAndUpdate(session.user.id, {
-            name, username, image, banner, bio
+            name, username, image, banner, bio, onBoarded: true
         });
 
         revalidatePath(pathname);    
@@ -150,6 +156,19 @@ export const follow = async ({ followId, pathname }: followProps) => {
                 $addToSet: { followers: session.user.id },
             });
 
+            // Create a new notification document
+            const notif = await Notification.create({
+                user: followId,
+                author: session.user.id,
+                link: `/profile/${followId}`,
+                desc: `started following you.`,
+            });
+
+            await User.findByIdAndUpdate(notif.user, {
+                $push: { notifications: notif._id },
+                $set: { hasNotification: true },
+            }, {new: true})
+
             revalidatePath(pathname);
 
             if (followUser && followedUser)  
@@ -165,18 +184,31 @@ export const follow = async ({ followId, pathname }: followProps) => {
 
 
 
-export const exploreUsers = async () => {
+export const getNotifications = async () => {
     try{
         const session = await getAuthSession()
         if(!session) 
             return { success: false, message: "Authentication error"}
 
         await connectDb();
-        const data = await User.find({ _id: { $ne: session.user.id } })
-        .select('_id name username image followers followings');
 
-        if(data){
-            return {data, success: true, message: "User fetched successfully"}
+        const notifs = await User.findById(session.user.id)
+        .select("_id name username image notifications hasNotifications")
+        .populate({
+            path: "notifications",
+            model: Notification,
+            populate: {
+                path: 'author',
+                model: User,
+                select: '_id name username image'
+            },
+            options: {
+                sort: { createdAt: -1 }
+            }
+        })
+
+        if(notifs){
+            return {notifs, success: true, message: "User fetched successfully"}
         }else{
             return {success: false, message: "Error while fetching user data"}
         }

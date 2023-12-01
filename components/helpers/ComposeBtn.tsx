@@ -1,6 +1,5 @@
 import Link from 'next/link'
 
-
 export const ComposeBtn = ({userId}: {userId: string}) => {
   return (
     <Link href={`/composeTweet?userid=${userId}`} className='fixed bottom-20 right-5'>

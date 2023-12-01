@@ -4,8 +4,13 @@ const nextConfig = {
         ignoreBuildErrors: true
     },
     images: {
-        domains: ["lh3.googleusercontent.com", "firebasestorage.googleapis.com"]
-    },
+        remotePatterns: [
+          {
+            protocol: "https",
+            hostname: "**",
+          },
+        ],
+      },
 }
 
 module.exports = nextConfig
