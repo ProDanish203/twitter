@@ -111,6 +111,7 @@ export const Edit = ({id, data, redirect}: Props) => {
         </label>
         <input type="file" id="image" 
         className="hidden"
+        accept="image/*"
         onChange={(e:any) => {
             setFile(e.target.files[0])
             uploadFile(file, setImage)
@@ -125,6 +126,7 @@ export const Edit = ({id, data, redirect}: Props) => {
 
         <input type="file" id="banner" 
         className="hidden"
+        accept="image/*"
         onChange={(e:any) => setBannerFile(e.target.files[0])}
         />  
 

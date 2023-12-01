@@ -115,6 +115,7 @@ export const ComposeXheader = ({authorId, authorImg, authorUsername, btnTitle, p
         <div className="text-primary flex gap-5">
           <input type="file" id="image" 
           className="hidden"
+          accept="image/*"
           onChange={(e:any) => {
             setFile(e.target.files[0])
           }}
