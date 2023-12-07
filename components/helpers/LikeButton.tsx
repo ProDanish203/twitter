@@ -3,6 +3,7 @@
 import { likeTweet } from "@/lib/actions/Tweet";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface Props{
     likes: number;
@@ -16,7 +17,9 @@ export const LikeButton = ({likes, postId, likedBy}: Props) => {
     const {data: session} = useSession();
 
     const handleLike = async () => {
-        const {success} = await likeTweet(postId, pathname);
+      if(!session) return toast.error("Please login to like tweet")
+      const {success} = await likeTweet(postId, pathname);
+      if(!success) return toast.error("Something went wrong");
     }
 
   return (

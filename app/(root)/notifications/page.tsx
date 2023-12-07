@@ -1,14 +1,15 @@
 import { NotifCard } from '@/components/cards';
 import { Header } from '@/components/shared';
-import { getNotifications } from '@/lib/actions/User';
+import { getCurrentUser, getNotifications } from '@/lib/actions/User';
 import { redirect } from 'next/navigation';
 import React from 'react'
 
 const Notifications = async () => {
-
-  const {notifs, success} = await getNotifications();
+  const {data, success} = await getCurrentUser()
+  if(!success) redirect("/");
+  const {notifs} = await getNotifications();
   const {notifications} = notifs
-  if(!success) redirect('/')
+  
   return (
     <section className='min-h-screen'>
     <div>

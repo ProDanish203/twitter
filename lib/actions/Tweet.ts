@@ -34,9 +34,9 @@ export const getFeed = async (currentUser: string) => {
 
 export const getTweet = async (id: string) => {
     try{
-        const session = await getAuthSession()
-        if(!session) 
-            return { success: false, message: "Authentication error"}
+        // const session = await getAuthSession()
+        // if(!session) 
+        //     return { success: false, message: "Authentication error"}
     
         await connectDb();
         const tweet = await Tweet.findById(id)

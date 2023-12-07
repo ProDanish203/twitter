@@ -8,8 +8,8 @@ import { Suspense } from "react";
 export default async function Home() {
 
   const {data, success} = await getCurrentUser();
-  if(!success) return;
-  if(data.onBoarded == false)
+  
+  if(success && data.onBoarded == false)
     redirect(`/onboarding/${data.id}`)
   
   return (
@@ -18,13 +18,17 @@ export default async function Home() {
       <div className="relative">
         <Header label="Home" isBack={false}/>
       </div>
+      {
+        success && (
+        <div className="max-sm:hidden">      
+          <ComposeXheader btnTitle="Post" placeholder="What is happening?!" authorImg={data?.image} authorId={data?._id} authorUsername={data?.username}/>
+        </div>
+        )
+      }
       
-      <div className="max-sm:hidden">      
-        <ComposeXheader btnTitle="Post" placeholder="What is happening?!" authorImg={data?.image} authorId={data?._id} authorUsername={data?.username}/>
-      </div>
       
       <Suspense fallback={<FeedSkeleton/>}>
-        <Feed currentUser={data._id}/>
+        <Feed currentUser={success && data._id }/>
       </Suspense>
 
   </section>

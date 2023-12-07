@@ -61,6 +61,7 @@ export const PostCard = ({data, isComments, isMedia}: Props) => {
                 <span>{data.children.length}</span>
             </div>
 
+            
             <LikeButton likes={data.likes} likedBy={data.likedBy} postId={data._id}/>
 
             <div className="text-placeolder max-sm:text-sm">

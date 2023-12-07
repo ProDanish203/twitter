@@ -20,6 +20,7 @@ export async function generateMetadata(){
 const Onboarding = async ({params}:Params ) => {
     const {id} = params;
     const {data, success} = await getCurrentUser();
+    if(!success) redirect('/');
     if(data.id != id) redirect(`/profile/${data.id}`)
   
   return (

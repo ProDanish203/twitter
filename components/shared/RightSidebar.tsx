@@ -15,10 +15,16 @@ interface Profile{
 
 export const RightSidebar = async () => {
 
+  // @ts-ignore
   const {data, success} = await exploreSomeUsers();
   // @ts-ignore
+  if(!success) return (
+  <div className='h-screen lg:min-w-[200px] max-w-[350px] pt-28 lg:w-full w-fit sticky p-7 top-0 right-0 border-l-[1px] border-neutral-800 overflow-hidden'>
+      
+  </div>
+  );
+  // @ts-ignore
   const {users, user} = data;
-  if(!success) return;
 
   return (
     <div className='h-screen lg:min-w-[200px] max-w-[350px] pt-28 lg:w-full w-fit sticky p-7 top-0 right-0 border-l-[1px] border-neutral-800 overflow-hidden'>

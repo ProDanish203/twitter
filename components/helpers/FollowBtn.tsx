@@ -2,6 +2,7 @@
 import { follow} from "@/lib/actions/User";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface Props{
     followId: string;    
@@ -12,9 +13,10 @@ interface Props{
 export const FollowBtn = ({followId, followers, icon}: Props) => {
 
     const pathname = usePathname();
-    const {data: session} = useSession();
+    const {data: session, status} = useSession();
 
     const handleFollow = async () => {
+        if(status !== "loading" && status == "unauthenticated") return toast.error("Please Login to follow")
         const data = await follow({followId, pathname});
     }
 

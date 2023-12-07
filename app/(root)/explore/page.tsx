@@ -2,6 +2,7 @@ import { ExploreCard } from "@/components/cards"
 import { SearchBar } from "@/components/forms";
 import { Header } from "@/components/shared"
 import { exploreUsers } from "@/lib/actions/Explore"
+import { getCurrentUser } from "@/lib/actions/User";
 import { redirect } from "next/navigation";
 
 
@@ -15,10 +16,11 @@ interface Profile{
 }
 
 const Explore = async () => {
-  const {data, success} = await exploreUsers();
+  const {data, success} = await getCurrentUser();
+  if(!success) redirect ('/')
+  const {exploreData} = await exploreUsers();
   // @ts-ignore
-  const {users, user} = data;
-  if(!success) return redirect('/');
+  const {users, user} = exploreData;
 
   return (
     <section className='min-h-screen pt-10'>

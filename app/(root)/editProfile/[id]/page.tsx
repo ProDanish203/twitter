@@ -21,8 +21,8 @@ const EditProfile = async ({params}: Params) => {
 
   const {id} = params;
   const {data, success} = await getCurrentUser();
-  if(data.id != id) redirect(`/profile/${data.id}`)
   if(!success) redirect('/')
+  if(data.id != id) redirect(`/profile/${data.id}`)
   
 
   return (

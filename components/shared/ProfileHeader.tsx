@@ -20,8 +20,6 @@ interface Props{
 export const ProfileHeader = async ({userId, name, username, pfp, banner, bio, createdAt, currentUserProfile, followers, following} : Props) => {
 
     const formattedDate = format(new Date(createdAt), 'MMMM yyyy')
-    console.log(banner)
-
 
   return (
     <div className='w-full border-b-[1px] border-neutral-800 '>

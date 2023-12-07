@@ -8,10 +8,11 @@ import { toast } from 'react-hot-toast';
 import { addTweet } from '@/lib/actions/Tweet';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { app } from "@/utils/firebase";
+import Link from 'next/link';
 
 export const Reply = ({postId}: {postId: string}) => {
 
-    const {data: session} = useSession();
+    const {data: session, status} = useSession();
     const [user, setUser] = useState();
     const [caption, setCaption] = useState("");
     const [file, setFile] = useState("");
@@ -99,6 +100,16 @@ export const Reply = ({postId}: {postId: string}) => {
         }
     }
 
+    if(status != "loading" && status == "unauthenticated" ) return(
+        <div className='py-2 px-3 border-b-[1px] border-neutral-800'>
+            <p className='text-text md:text-lg'>
+                <Link href="/sigin" className='underline cursor-pointer'>
+                    Login
+                </Link>
+                &nbsp;to add comment.
+            </p>
+        </div>
+    )
 
   return (
     <div className="flex items-start gap-0 py-2 px-3 border-b-[1px] border-neutral-800">

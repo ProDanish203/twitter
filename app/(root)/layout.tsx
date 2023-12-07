@@ -20,7 +20,7 @@ export default async function RootLayout({
 }) {
 
   const session = await getAuthSession();
-  if(!session) return redirect('/signin')
+  // if(!session) return redirect('/signin')
 
   return (
     <html lang="en">
@@ -56,7 +56,11 @@ export default async function RootLayout({
               </div>
               
               <div className='xs:hidden'>
-                <ComposeBtn userId={session.user.id}/>
+                {
+                  session && (
+                    <ComposeBtn userId={session.user.id}/>
+                  )
+                }
                 <BottomBar/>
               </div>
             </div>
