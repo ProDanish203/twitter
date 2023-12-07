@@ -14,7 +14,7 @@ export async function generateMetadata({params}:Params){
   const {tweet} = await getTweet(params.id);
   return {
     title: `${tweet.author.name} on X : "${tweet.caption.substring(0,50)}"`,
-    description: `${tweet.caption} | View full blog on X.com`
+    description: `${tweet.caption} | View tweet on twitterds`
   }
 }
 

@@ -9,8 +9,8 @@ import { Toaster } from 'react-hot-toast';
 
 
 export const metadata: Metadata = {
-  title: 'X | Formerly Twitter',
-  description: 'X | A social media platform built by Danish Siddiqui, where users can share their daily life routines through tweets and also interact and engage with other users',
+  title: 'TwitterDS | Made By Danish Siddiqui',
+  description: 'TwitterDS | A social media platform built by Danish Siddiqui, where users can share their daily life routines through tweets and also interact and engage with other users',
 }
 
 export default async function RootLayout({

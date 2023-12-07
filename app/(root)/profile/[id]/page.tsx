@@ -15,8 +15,8 @@ export async function generateMetadata({params}: Params){
   const {data, success} = await getCurrentUser();
   const {user} = await getProfile(params.id);
   return {
-    title: `${success && data?.id == params.id ? "Your Profile": "@" + user.username + "'s Profile"} | view on X`,
-    description: `${user.username} | View full blog on X.com`
+    title: `${success && data?.id == params.id ? "Your Profile": "@" + user.username + "'s Profile"} | view on twitterds`,
+    description: `${user.username} | View complete profile on twitterds`
   }
 }
 

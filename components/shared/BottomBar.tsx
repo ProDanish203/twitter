@@ -3,9 +3,6 @@ import { navItems } from '@/utils/data'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession } from "next-auth/react";
-import { getUser } from '@/lib/actions/User';
-import { useEffect, useState } from 'react';
-import loading from '@/app/(root)/loading';
 import { Loader } from '../helpers';
 
 
