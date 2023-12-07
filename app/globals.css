@@ -7,6 +7,15 @@ img {
   pointer-events: none;
 }
 
+:root {
+  --primary: #1d9bf0;
+  --text: #ffffff;
+  --bg: #000000;
+  --darkAccent: #16181c;
+  --whiteAccent: #eff3f4;
+  --placeholder: #696d72;
+}
+
 .glassmorphism {
   backdrop-filter: blur(8px) saturate(190%);
   -webkit-backdrop-filter: blur(8px) saturate(190%);
@@ -21,6 +30,27 @@ img {
 
 #progress-container {
   border: 1px solid #ccc;
+}
+
+::-webkit-scrollbar{
+  height: 10px;
+  width: 10px;
+}
+::-webkit-scrollbar-track{
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+}
+::-webkit-scrollbar-thumb{
+  border-radius: 5px;
+  background-color: var(--primary);
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
 }
 
 #progress-bar {

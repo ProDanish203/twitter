@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation';
 import { ComposeBtn } from '@/components/helpers';
 import { Toaster } from 'react-hot-toast';
 
+
 export const metadata: Metadata = {
   title: 'X | Formerly Twitter',
   description: 'X | A social media platform built by Danish Siddiqui, where users can share their daily life routines through tweets and also interact and engage with other users',

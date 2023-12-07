@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { format } from "date-fns";
 import { FollowBtn, LogoutBtn } from '../helpers';
+import { Modal } from '.';
 
 interface Props{
     pfp: string;
@@ -16,10 +17,12 @@ interface Props{
     banner: string;
 }   
 
-export const ProfileHeader = ({userId, name, username, pfp, banner, bio, createdAt, currentUserProfile, followers, following} : Props) => {
+export const ProfileHeader = async ({userId, name, username, pfp, banner, bio, createdAt, currentUserProfile, followers, following} : Props) => {
 
     const formattedDate = format(new Date(createdAt), 'MMMM yyyy')
     console.log(banner)
+
+
   return (
     <div className='w-full border-b-[1px] border-neutral-800 '>
         <div className='sm:h-[200px] h-[150px] bg-neutral-700 relative w-full'>
@@ -66,9 +69,8 @@ export const ProfileHeader = ({userId, name, username, pfp, banner, bio, created
             </div>
 
             <div className='flex items-center gap-4'>
-                <p className='text-sm hover:underline text-neutral-400'><span className='text-text font-semibold'>{following.length}</span> Following</p>
-
-                <p className='text-sm hover:underline text-neutral-400'><span className='text-text font-semibold'>{followers.length}</span> Followers</p>
+                <Modal data={following} title="Following" btnTitle="Following"/>
+                <Modal data={followers} title="Followers" btnTitle="Followers"/>                
             </div>
         </div>
 

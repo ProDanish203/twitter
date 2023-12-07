@@ -19,11 +19,9 @@ export const PostCard = ({data, isComments, isMedia}: Props) => {
 
         <div className="h-full w-[70px] max-md:w-[50px]">
             <Link href={`/profile/${data.author._id}`}>
-            <div className="relative max-md:w-10 max-md:h-10 w-12 h-12 object-contain">
-                <Image fill src={data.author.image || `/dummyUser.png`} alt={data.author.username}
-                className="rounded-full object-cover"
+                <Image width={100} height={100} src={data.author.image || `/dummyUser.png`} alt={data.author.username}
+                className="rounded-full md:w-12 md:h-12 w-10 h-10 object-cover"
                 />
-            </div>
             </Link>
             {/* {isComments && (
                 <div className="h-[90%] w-[2px] bg-neutral-700 absolute md:left-8 left-6"/>
@@ -46,7 +44,7 @@ export const PostCard = ({data, isComments, isMedia}: Props) => {
         <p className="text-text md:text-[15px] my-2">{data.caption}</p>
 
         {isMedia && (
-            <div className="relative mt-3 mb-4">
+        <div className="relative mt-3 mb-4">
             <Image src={data.image} width={1000} height={1000} alt="lorem ipsum"
             className="object-cover rounded-xl max-w-[500px] w-full h-[500px]"
             />

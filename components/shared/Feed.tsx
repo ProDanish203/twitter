@@ -2,9 +2,8 @@ import { getFeed } from '@/lib/actions/Tweet'
 import { PostCard } from '../cards';
 
 export const Feed = async ({currentUser}: {currentUser: string}) => {
-
-    const {feed, success} = await getFeed(currentUser);
-    if(!success) return;
+  const {feed, success} = await getFeed(currentUser);
+  if(!success) return;
   return (
     <>
     <div>

@@ -17,6 +17,7 @@ export const Reply = ({postId}: {postId: string}) => {
     const [file, setFile] = useState("");
     const [image, setImage] = useState("");
     const [progress, setProgress] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     const pathname = usePathname();
 
@@ -72,6 +73,7 @@ export const Reply = ({postId}: {postId: string}) => {
     const addComment = async (e: FormEvent) => {
         e.preventDefault();
         try{
+            setLoading(true);
             if(!caption) return toast.error("Textfield cannot be empty")
             if(file && progress >= 0 && progress != 100) return toast.error("Uploading media, please wait")
 
@@ -85,13 +87,15 @@ export const Reply = ({postId}: {postId: string}) => {
             });
             if(success){
                 toast.success("Comment added");
-                setCaption("");
-                setFile("");
-                setImage("");
-                setProgress(0);
             }
         }catch(error){
             toast.error("Something went wrong");
+        }finally{
+            setCaption("");
+            setFile("");
+            setImage("");
+            setProgress(0);
+            setLoading(false);
         }
     }
 
@@ -131,7 +135,7 @@ export const Reply = ({postId}: {postId: string}) => {
 
         <button 
         type='submit'
-        className="text-text bg-primary rounded-full px-5 py-1">Reply</button>
+        className="text-text bg-primary rounded-full px-5 py-1" disabled={loading}>Reply</button>
 
         </div>
 

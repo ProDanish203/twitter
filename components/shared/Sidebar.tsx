@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { navItems } from '@/utils/data';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { getCurrentUser} from '@/lib/actions/User';
+import { SidebarSkeleton } from '../skeleton';
 
 export const Sidebar = () => {
 
@@ -36,8 +37,9 @@ export const Sidebar = () => {
             <Link href="/" className="relative object-cover">
                 <Image src="/logo.svg" width={100} height={100} alt="X" className="object-cover max-md:w-10 max-md:h-10 w-14 h-14"/>
             </Link> 
+
             {user &&  (
-            <>
+              <>
             <div className="flex flex-col gap-10 lg:items-start w-full items-center mt-10 max-lg:pr-2">
                 {navItems.map((link) => {
                     const isActive = (pathname.includes(link.title) && link.path.length > 1) || pathname === link.path;
@@ -72,7 +74,6 @@ export const Sidebar = () => {
             </div>
             </>
           )} 
-
             
 
         </div>

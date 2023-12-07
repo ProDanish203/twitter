@@ -27,7 +27,7 @@ export const RightSidebar = async () => {
 
           <SearchBar/>
 
-          <div className='bg-darkAccent py-5 w-[300px] rounded-md'>
+          <div className='bg-darkAccent py-5 w-[300px] rounded-md max-h-[500px] overflow-y-scroll'>
               
               <h2 className='text-text text-xl font-semibold mb-4 px-5'>Who to follow</h2>
               <div className='flex flex-col gap-2'>
@@ -41,7 +41,9 @@ export const RightSidebar = async () => {
                       </Link>
 
                       <Link href={`/profile/${profile._id}`}>
-                          <h6 className='text-text font-semibold md:text-md'>{profile.name}</h6>
+                        <h6 className='text-text font-semibold md:text-md'>
+                          {profile.name.length > 10 ? profile.name.substring(0, 15) : profile.name}
+                        </h6>
                           <p className='text-whiteAccent text-sm'>@{profile.username}</p>
                       </Link>
                   </div>

@@ -22,6 +22,7 @@ export const ComposeXheader = ({authorId, authorImg, authorUsername, btnTitle, p
     const [file, setFile] = useState("")
     const [image, setImage] = useState("");
     const [progress, setProgress] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     const router = useRouter();
     const pathname = usePathname();
@@ -67,6 +68,7 @@ export const ComposeXheader = ({authorId, authorImg, authorUsername, btnTitle, p
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
     try{
+      setLoading(true);
       if(!caption) return toast.error("Textfield cannot be empty");
       if(file && progress >= 0 && progress != 100) return toast.error("Uploading media, please wait")
 
@@ -78,16 +80,18 @@ export const ComposeXheader = ({authorId, authorImg, authorUsername, btnTitle, p
 
       if(success){
         toast.success("Tweet added");
-        setCaption("")
-        setFile("")
-        setImage("")
-        setProgress(0);
         router.push('/')
       }else     
-          toast.success("Something went wrong");
+        toast.success("Something went wrong");
 
     }catch(error){
       toast.error("Something went wrong");
+    }finally{
+      setCaption("")
+      setFile("")
+      setImage("")
+      setProgress(0);
+      setLoading(false);
     }
   }
 
@@ -125,7 +129,7 @@ export const ComposeXheader = ({authorId, authorImg, authorUsername, btnTitle, p
           </label>
         </div>
 
-        <button className="text-text bg-primary rounded-full px-5 py-1" type="submit">{btnTitle}</button>
+        <button className="text-text bg-primary rounded-full px-5 py-1" type="submit" disabled={loading}>{btnTitle}</button>
 
       </div>
 

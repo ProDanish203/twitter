@@ -1,7 +1,8 @@
 import { Header, ProfileFeed, ProfileHeader } from '@/components/shared';
+import { FeedSkeleton } from '@/components/skeleton';
 import { getCurrentUser, getProfile } from '@/lib/actions/User';
 import { redirect } from 'next/navigation';
-import React from 'react'
+import React, { Suspense } from 'react'
 
 interface Params{
   params: {
@@ -29,6 +30,7 @@ const Profile = async ({params}: Params) => {
   
 
   const {user} = await getProfile(id);
+  
 
   return (
     <section className='w-full relative'>
@@ -39,7 +41,9 @@ const Profile = async ({params}: Params) => {
     {/* @ts-ignore */}
     <ProfileHeader pfp={user?.image} username={user?.username} name={user?.name} bio={user?.bio} currentUserProfile={data?._id == id} createdAt={user?.createdAt} following={user?.followings} followers={user?.followers} userId={user?._id} banner={user?.banner}/>
 
-    <ProfileFeed userId={user?._id} tweets={user?.tweets}/>
+    <Suspense fallback={<FeedSkeleton/>}>
+      <ProfileFeed userId={user?._id} tweets={user?.tweets}/>
+    </Suspense>
       
   </section>
   )
