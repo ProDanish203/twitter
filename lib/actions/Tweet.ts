@@ -13,13 +13,24 @@ interface TweetProps{
     pathname: string;
 }
 
-export const getFeed = async (currentUser: string) => {
+interface FeedProps{
+    currentUser: string;
+    page?: number;
+    limit?: number;
+}
+
+export const getFeed = async ({currentUser, page = 1}: FeedProps) => {
     try{
         await connectDb();
         // const feed = await Tweet.find({author: {$ne: currentUser}});
+
+        // const skipAmount = (page - 1) * limit;
+
         const feed = await Tweet.find({ parentId: { $exists: false } })
         .populate({path: 'author', model: User, select: '_id name username image'})
         .sort({createdAt: -1})
+        // .skip(skipAmount)
+        // .limit(limit);
 
         if(feed){
             return {feed, success: true, message: "Tweet fecthed successfully"}
@@ -34,9 +45,6 @@ export const getFeed = async (currentUser: string) => {
 
 export const getTweet = async (id: string) => {
     try{
-        // const session = await getAuthSession()
-        // if(!session) 
-        //     return { success: false, message: "Authentication error"}
     
         await connectDb();
         const tweet = await Tweet.findById(id)

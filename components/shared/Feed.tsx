@@ -1,8 +1,14 @@
 import { getFeed } from '@/lib/actions/Tweet'
 import { PostCard } from '../cards';
+import { LoadMore } from '../helpers';
 
-export const Feed = async ({currentUser}: {currentUser: string}) => {
-  const {feed, success} = await getFeed(currentUser);
+interface Props{
+  currentUser: string;
+  page: number;
+}
+
+export const Feed = async ({currentUser, page}: Props) => {
+  const {feed, success} = await getFeed({currentUser});
   if(!success) return;
   return (
     <>
@@ -17,6 +23,11 @@ export const Feed = async ({currentUser}: {currentUser: string}) => {
       )
     }
     </div>
+
+    {/* Infinite Loading */}
+    {/* <div className='text-center w-full mt-10'>
+      <LoadMore dark={false} currentUser={currentUser} initialFeed={feed}/>
+    </div> */}
     </>
   )
 }

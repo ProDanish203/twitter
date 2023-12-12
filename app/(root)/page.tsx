@@ -5,10 +5,16 @@ import { getCurrentUser } from "@/lib/actions/User";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-export default async function Home() {
+interface Params{
+  searchParams: {
+    page: number;
+  }
+}
+
+export default async function Home({searchParams}:Params) {
 
   const {data, success} = await getCurrentUser();
-  
+  const {page} = searchParams;
   if(success && data.onBoarded == false)
     redirect(`/onboarding/${data.id}`)
   
@@ -28,7 +34,7 @@ export default async function Home() {
       
       
       <Suspense fallback={<FeedSkeleton/>}>
-        <Feed currentUser={success && data._id }/>
+        <Feed currentUser={success && data._id } page={page}/>
       </Suspense>
 
   </section>

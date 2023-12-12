@@ -3,7 +3,6 @@ import '../globals.css'
 import { AuthProvider } from '@/store/AuthProvider'
 import { BottomBar, RightSidebar, Sidebar } from '@/components/shared'
 import { getAuthSession } from '@/utils/auth';
-import { redirect } from 'next/navigation';
 import { ComposeBtn } from '@/components/helpers';
 import { Toaster } from 'react-hot-toast';
 
@@ -20,7 +19,6 @@ export default async function RootLayout({
 }) {
 
   const session = await getAuthSession();
-  // if(!session) return redirect('/signin')
 
   return (
     <html lang="en">
