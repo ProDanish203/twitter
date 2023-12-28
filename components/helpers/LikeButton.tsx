@@ -1,8 +1,8 @@
 "use client"
-
 import { likeTweet } from "@/lib/actions/Tweet";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import { useOptimistic } from "react";
 import toast from "react-hot-toast";
 
 interface Props{
@@ -11,13 +11,28 @@ interface Props{
     likedBy: string[];
 }
 
+interface Session{
+  
+}
+
 export const LikeButton = ({likes, postId, likedBy}: Props) => {
 
     const pathname = usePathname();
     const {data: session} = useSession();
 
+    const [optimtisticLike, addOptimisticLike] = useOptimistic(
+      likedBy,
+      (state, addLike: any) => {
+        return [...state, addLike]
+      }
+    );
+
     const handleLike = async () => {
       if(!session) return toast.error("Please login to like tweet")
+      addOptimisticLike({
+        // @ts-ignore
+        likedBy: likedBy.push(session.user.id)
+      });
       const {success} = await likeTweet(postId, pathname);
       if(!success) return toast.error("Something went wrong");
     }
@@ -27,7 +42,7 @@ export const LikeButton = ({likes, postId, likedBy}: Props) => {
     onClick={handleLike}
     >
         {/* @ts-ignore */}
-        <i className={` mr-2 cursor-pointer ${session && likedBy.includes(session.user.id) ? 'fas fa-heart text-red-600': 'far fa-heart'}`}></i>
+        <i className={` mr-2 cursor-pointer ${session && optimtisticLike.includes(session.user.id) ? 'fas fa-heart text-red-600': 'far fa-heart'}`}></i>
         <span>{likes}</span>
     </div>
   )

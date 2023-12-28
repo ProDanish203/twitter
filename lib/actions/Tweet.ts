@@ -117,7 +117,6 @@ export const addTweet = async ({caption, image, pathname, parentId}: TweetProps)
             $push: { tweets: tweet._id },
         })
 
-        revalidatePath(pathname)
         if(tweet){
             return {success: true, message: "Tweet composed successfully"}
         }else{
@@ -126,6 +125,8 @@ export const addTweet = async ({caption, image, pathname, parentId}: TweetProps)
 
     }catch(error:any){
         throw new Error(`Failed to compose tweet: ${error.message}`)
+    }finally{
+        revalidatePath(pathname)
     }
 }
 
@@ -189,7 +190,6 @@ export const likeTweet = async (id:string, pathname:string) => {
             }
         }
 
-        revalidatePath(pathname)
         if(updatedTweet){
             return {success: true, message: "Tweet liked successfully"}
         }else{
@@ -198,5 +198,7 @@ export const likeTweet = async (id:string, pathname:string) => {
 
     }catch(error:any){
         throw new Error(`Failed to like tweet: ${error.message}`)
+    }finally{
+        revalidatePath(pathname)
     }
 }
