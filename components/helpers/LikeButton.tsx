@@ -20,7 +20,7 @@ export const LikeButton = ({likes, postId, likedBy}: Props) => {
     const pathname = usePathname();
     const {data: session} = useSession();
 
-    const [optimtisticLike, addOptimisticLike] = useOptimistic(
+    const [optimisticLike, addOptimisticLike] = useOptimistic(
       likedBy,
       (state, addLike: any) => {
         return [...state, addLike]
@@ -42,7 +42,7 @@ export const LikeButton = ({likes, postId, likedBy}: Props) => {
     onClick={handleLike}
     >
         {/* @ts-ignore */}
-        <i className={` mr-2 cursor-pointer ${session && optimtisticLike.includes(session.user.id) ? 'fas fa-heart text-red-600': 'far fa-heart'}`}></i>
+        <i className={` mr-2 cursor-pointer ${session && optimisticLike.includes(session.user.id) ? 'fas fa-heart text-red-600': 'far fa-heart'}`}></i>
         <span>{likes}</span>
     </div>
   )

@@ -2,6 +2,7 @@
 import { follow} from "@/lib/actions/User";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
+import { useOptimistic } from "react";
 import toast from "react-hot-toast";
 
 interface Props{
@@ -15,8 +16,19 @@ export const FollowBtn = ({followId, followers, icon}: Props) => {
     const pathname = usePathname();
     const {data: session, status} = useSession();
 
+    const [optimisticFollowers, addOptimisticFollowers] = useOptimistic(
+        followers,
+        (state, action: any) => {
+          return [...state, action]
+        }
+      );
+
     const handleFollow = async () => {
         if(status !== "loading" && status == "unauthenticated") return toast.error("Please Login to follow")
+        addOptimisticFollowers({
+            // @ts-ignore
+            followers: followers.push(session?.user.id)
+        })
         const data = await follow({followId, pathname});
     }
 
@@ -29,7 +41,7 @@ export const FollowBtn = ({followId, followers, icon}: Props) => {
         onClick={handleFollow}
         >
             {/* @ts-ignore */}
-            {session && followers.includes(session.user.id) ? "Unfollow" : "Follow"}
+            {session && optimisticFollowers.includes(session.user.id) ? "Unfollow" : "Follow"}
         </button>
     </div> 
   )

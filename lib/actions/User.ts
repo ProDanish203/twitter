@@ -104,15 +104,16 @@ export const updateProfile = async ({ name, username, image, banner, bio,  pathn
             name, username, image, banner, bio, onBoarded: true
         });
 
-        revalidatePath(pathname);    
         if(updateUser)  
-            return {success: true, message: "Profile updated successfully"}
+        return {success: true, message: "Profile updated successfully"}
         else
-            return {success: false, message: "Error while updating profile"}
+        return {success: false, message: "Error while updating profile"}
 
 
     }catch(error:any){
         throw new Error(`Failed to fetch User data: ${error.message}`)
+    }finally{
+        revalidatePath(pathname);    
     }
 }
 
@@ -169,16 +170,17 @@ export const follow = async ({ followId, pathname }: followProps) => {
                 $set: { hasNotification: true },
             }, {new: true})
 
-            revalidatePath(pathname);
-
+            
             if (followUser && followedUser)  
-                return { success: true, message: "Followed successfully" };
+            return { success: true, message: "Followed successfully" };
             else
-                return { success: false, message: "Error while updating profile" };
+            return { success: false, message: "Error while updating profile" };
         }
 
     } catch (error:any) {
         throw new Error(`Failed to follow/unfollow user: ${error.message}`);
+    }finally{
+        revalidatePath(pathname);
     }
 };
 

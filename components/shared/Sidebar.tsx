@@ -111,7 +111,7 @@ export const Sidebar = () => {
         <Link href={`/profile/${session.user.id}`} className="flex items-center gap-3">
             <div className="relative object-cover">
                 {/* @ts-ignore */}
-                <Image src={session.user.image} width={100} height={100} alt="X" className="object-cover rounded-full max-md:w-10 max-md:h-10 w-12 h-12"/>
+                <Image src={session.user.image} width={100} height={100} alt={session.user.name} className="object-cover rounded-full max-md:w-10 max-md:h-10 w-12 h-12"/>
             </div>
 
             <div className="max-lg:hidden">
