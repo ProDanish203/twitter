@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from '@prisma/client';
+import { Transform } from 'class-transformer';
 import {
   IsEmail,
   IsEnum,
@@ -12,6 +13,7 @@ import {
 export class RegisterUserDto {
   @IsNotEmpty({ message: 'Username is required' })
   @IsString({ message: 'Username must be a string' })
+  @Transform(({ value }) => value.trim().toLowerCase())
   @ApiProperty({
     type: String,
     required: true,
@@ -30,6 +32,7 @@ export class RegisterUserDto {
 
   @IsNotEmpty({ message: 'Email is required' })
   @IsEmail({}, { message: 'Email must be a valid email address' })
+  @Transform(({ value }) => value.trim().toLowerCase())
   @ApiProperty({
     type: String,
     required: true,
@@ -71,6 +74,7 @@ export class LoginUserDto {
   // can either be username or email
   @IsNotEmpty({ message: 'Username or email is required' })
   @IsString({ message: 'Username or email must be a string' })
+  @Transform(({ value }) => value.trim().toLowerCase())
   @ApiProperty({
     type: String,
     required: true,

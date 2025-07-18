@@ -3,12 +3,29 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
 import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
-import { throwError } from 'src/common/utils/helpers';
-import { hashPassword, verifyPassword } from 'src/common/utils/hash';
-import { JwtPayload, LoginUserResponse, RegisterUserResponse } from './types';
-import { CookieOptions, Response } from 'express';
+import { generateSecureOTP, throwError } from 'src/common/utils/helpers';
+import {
+  generateSecureToken,
+  hashPassword,
+  verifyPassword,
+} from 'src/common/utils/hash';
+import {
+  JwtPayload,
+  LoginUserResponse,
+  OtpVerificationResponse,
+  RegisterUserResponse,
+} from './types';
+import { CookieOptions, Request, Response } from 'express';
 import { ApiResponse } from 'src/common/types/types';
-import { User } from '@prisma/client';
+import { OtpChannel, OtpType, User } from '@prisma/client';
+import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
+import {
+  OTP_EXPIRATION_TIME,
+  OTP_MAX_ATTEMPTS,
+  RATE_LIMIT_MAX_REQUESTS,
+  RATE_LIMIT_WINDOW,
+} from 'src/common/lib/constants';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
@@ -118,7 +135,7 @@ export class AuthService {
     } catch (err) {
       throw throwError(
         err.message || 'Login failed',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -157,8 +174,366 @@ export class AuthService {
     } catch (err) {
       throw throwError(
         err.message || 'Logout failed',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async findUserByIdentifier(
+    identifier: string,
+    channel?: OtpChannel,
+  ): Promise<{ id: string } | null> {
+    const isEmail =
+      (channel && channel === OtpChannel.EMAIL) || identifier.includes('@');
+    return this.prisma.user.findUnique({
+      where: {
+        ...(isEmail ? { email: identifier } : { phone: identifier }),
+      },
+      select: { id: true },
+    });
+  }
+
+  async sendOtp(
+    req: Request,
+    res: Response,
+    dto: SendOtpDto,
+  ): Promise<ApiResponse<string>> {
+    try {
+      const { identifier, type, otpChannel } = dto;
+      const { ipAddress, userAgent } = this.getClientIpAndUserAgent(req);
+
+      await Promise.all([
+        this.checkRateLimit(identifier, 'send_otp'),
+        this.cleanUpExpiredOtps(identifier, type),
+      ]);
+
+      const existingOtp = await this.prisma.otpVerification.findFirst({
+        where: {
+          identifier,
+          type,
+          verified: false,
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      if (existingOtp) {
+        await this.updateRateLimit(identifier, 'send_otp');
+        return {
+          message:
+            'OTP already sent. Please wait for the previous OTP to expire.',
+          success: true,
+        };
+      }
+
+      const otp = generateSecureOTP();
+      const hashedOtp = await bcrypt.hash(otp, 10);
+
+      const user = await this.findUserByIdentifier(identifier, otpChannel);
+      if (!user || !user.id) {
+        await this.updateRateLimit(identifier, 'send_otp');
+        throw throwError('Account not found', HttpStatus.NOT_FOUND);
+      }
+
+      const expiresAt = new Date(Date.now() + OTP_EXPIRATION_TIME);
+      const otpRecord = await this.prisma.otpVerification.create({
+        data: {
+          identifier,
+          type,
+          code: hashedOtp,
+          channel: otpChannel,
+          maxAttempts: OTP_MAX_ATTEMPTS,
+          expiresAt,
+          userId: user?.id || null,
+          ipAddress,
+          userAgent,
+        },
+      });
+
+      if (!otpRecord)
+        throw throwError(
+          'Failed to send OTP',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+
+      await Promise.all([
+        this.sendOtpViaChannel(identifier, type, otpChannel, otp),
+        this.updateRateLimit(identifier, 'send_otp'),
+      ]);
+
+      return {
+        message: 'OTP sent successfully',
+        success: true,
+        data: otp,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to send OTP',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async verifyOtp(
+    req: Request,
+    dto: VerifyOtpDto,
+  ): Promise<ApiResponse<OtpVerificationResponse>> {
+    try {
+      const { otp, identifier, otpChannel, type } = dto;
+      const { ipAddress, userAgent } = this.getClientIpAndUserAgent(req);
+
+      const otpRecord = await this.prisma.otpVerification.findFirst({
+        where: {
+          identifier,
+          type,
+          channel: otpChannel,
+          verified: false,
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      if (!otpRecord) {
+        await this.updateRateLimit(identifier, 'verify_otp');
+        throw throwError('Invalid OTP', HttpStatus.BAD_REQUEST);
+      }
+
+      if (otpRecord.attempts >= OTP_MAX_ATTEMPTS) {
+        await this.updateRateLimit(identifier, 'verify_otp');
+        throw throwError(
+          'Maximum OTP attempts exceeded. Please request a new OTP.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const isValidOtp = await bcrypt.compare(otp, otpRecord.code);
+
+      // Increment attempts
+      await this.prisma.otpVerification.update({
+        where: { id: otpRecord.id },
+        data: {
+          attempts: {
+            increment: 1,
+          },
+        },
+      });
+
+      if (!isValidOtp) {
+        await this.updateRateLimit(identifier, 'verify_otp');
+        throw throwError('Invalid OTP', HttpStatus.BAD_REQUEST);
+      }
+
+      // Mark OTP as verified
+      await this.prisma.otpVerification.update({
+        where: { id: otpRecord.id },
+        data: {
+          verified: true,
+        },
+      });
+
+      const token = await generateSecureToken();
+      // Handle operations after successful verification
+      const [operationResult] = await Promise.all([
+        this.handleOtpTypeOperations(otpRecord.userId, type, token),
+        this.updateRateLimit(identifier, 'verify_otp'),
+      ]);
+
+      return {
+        message: 'OTP verification successful',
+        success: true,
+        data: {
+          token,
+        },
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'OTP verification failed',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async checkRateLimit(
+    identifier: string,
+    action: string,
+  ): Promise<void> {
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW); // 1 hour window
+
+    const rateLimit = await this.prisma.rateLimit.findUnique({
+      where: {
+        identifier_action: {
+          identifier,
+          action,
+        },
+      },
+    });
+
+    if (rateLimit) {
+      if (
+        rateLimit.windowStart > windowStart &&
+        rateLimit.count >= RATE_LIMIT_MAX_REQUESTS
+      ) {
+        throw throwError(
+          'Rate limit exceeded. Please try again later.',
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+    }
+  }
+
+  private async updateRateLimit(
+    identifier: string,
+    action: string,
+  ): Promise<void> {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + RATE_LIMIT_WINDOW); // 1 hour expiration
+
+    await this.prisma.rateLimit.upsert({
+      where: {
+        identifier_action: {
+          identifier,
+          action,
+        },
+      },
+      update: {
+        count: {
+          increment: 1,
+        },
+        expiresAt,
+      },
+      create: {
+        identifier,
+        action,
+        count: 1,
+        windowStart: now,
+        expiresAt,
+      },
+    });
+  }
+
+  private async cleanUpExpiredOtps(
+    identifier: string,
+    type: OtpType,
+  ): Promise<void> {
+    const now = new Date();
+    await this.prisma.otpVerification.deleteMany({
+      where: {
+        identifier,
+        type,
+        expiresAt: {
+          lt: now,
+        },
+      },
+    });
+  }
+
+  private getClientIpAndUserAgent(req: Request): {
+    ipAddress: string;
+    userAgent: string;
+  } {
+    const ipAddress = '';
+    // req.headers['x-forwarded-for']?.[0]?.split(',')[0] ||
+    // req.headers['x-real-ip'] ||
+    // null;
+    const userAgent = req.headers['user-agent'] || '';
+    return { ipAddress, userAgent };
+  }
+
+  private async handleOtpTypeOperations(
+    userId: string,
+    type: OtpType,
+    token?: string,
+  ): Promise<any> {
+    switch (type) {
+      case OtpType.EMAIL_VERIFICATION:
+        return await this.verifyEmail(userId);
+      case OtpType.PASSWORD_RESET:
+        return await this.handlePasswordReset(userId, type, token);
+      case OtpType.PHONE_VERIFICATION:
+        return await this.verifyPhone(userId);
+      case OtpType.LOGIN_VERIFICATION:
+        break;
+      case OtpType.TWO_FACTOR_AUTH:
+        break;
+      default:
+        throw throwError('Unsupported OTP type', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  private async verifyEmail(
+    userId: string,
+  ): Promise<Omit<User, 'password' | 'salt'>> {
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { isEmailVerified: true },
+      omit: { password: true, salt: true },
+    });
+  }
+
+  private async verifyPhone(
+    userId: string,
+  ): Promise<Omit<User, 'password' | 'salt'>> {
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { isPhoneVerified: true },
+      omit: { password: true, salt: true },
+    });
+  }
+
+  private async handlePasswordReset(
+    userId: string,
+    type: OtpType,
+    token: string,
+  ): Promise<Omit<User, 'password' | 'salt'>> {
+    // Create a verification token that will be used when updating the password
+    if (!token) {
+      throw throwError(
+        'Token is required for password reset',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const verificationToken = await this.prisma.verificationToken.create({
+      data: {
+        userId,
+        token,
+        type,
+        expiresAt: new Date(Date.now() + OTP_EXPIRATION_TIME),
+      },
+    });
+
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: { verificationTokens: { connect: { id: verificationToken.id } } },
+      omit: { password: true, salt: true },
+    });
+  }
+
+  private async sendOtpViaChannel(
+    identifier: string,
+    type: OtpType,
+    channel: OtpChannel,
+    otp: string,
+  ): Promise<void> {
+    switch (channel) {
+      case OtpChannel.EMAIL: {
+        console.log(
+          `Sending OTP ${otp} to ${identifier} via Email for ${type}`,
+        );
+        break;
+      }
+      case OtpChannel.SMS: {
+        console.log(`Sending OTP ${otp} to ${identifier} via SMS for ${type}`);
+        break;
+      }
     }
   }
 }
