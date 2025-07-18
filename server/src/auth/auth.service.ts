@@ -8,6 +8,7 @@ import { hashPassword, verifyPassword } from 'src/common/utils/hash';
 import { JwtPayload, LoginUserResponse, RegisterUserResponse } from './types';
 import { CookieOptions, Response } from 'express';
 import { ApiResponse } from 'src/common/types/types';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -122,7 +123,7 @@ export class AuthService {
     }
   }
 
-  async signJwtTokenToCookies(
+  private async signJwtTokenToCookies(
     res: Response,
     payload: JwtPayload,
   ): Promise<string> {
@@ -137,5 +138,27 @@ export class AuthService {
 
     res.cookie('token', token, cookieOptions);
     return token;
+  }
+
+  async logout(user: User, res: Response): Promise<ApiResponse<null>> {
+    try {
+      const cookieOptions: CookieOptions = {
+        maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+      };
+
+      res.clearCookie('token', cookieOptions);
+      return {
+        message: 'Logout successful',
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Logout failed',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
