@@ -1,4 +1,8 @@
-import { UserRole } from '@prisma/client';
+export interface ApiResponse<T = any> {
+  message: string;
+  success: boolean;
+  data?: T;
+}
 
 export interface QueryParams {
   page?: number;
@@ -25,19 +29,4 @@ export interface MulterFile {
   size: number;
   buffer: Buffer;
   filename: string;
-}
-
-export type JwtPayload = {
-  id: string;
-  email: string;
-  role: UserRole;
-};
-
-export interface GoogleUser {
-  email: string;
-  firstName: string;
-  lastName: string;
-  picture: string;
-  accessToken: string;
-  refreshToken: string;
 }
