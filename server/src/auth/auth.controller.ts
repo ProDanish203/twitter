@@ -1,12 +1,13 @@
 import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiProperty, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
 import { Response } from 'express';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User, UserRole } from '@prisma/client';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { Cron } from '@nestjs/schedule';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -37,5 +38,11 @@ export class AuthController {
   @ApiProperty({ title: 'Logout User' })
   async logout(@CurrentUser() user: User, @Res() response: Response) {
     return await this.authService.logout(user, response);
+  }
+
+  @Cron('0 0 * * *') // Runs every day at midnight
+  @ApiOperation({ summary: 'Cleanup Tokens and OTPs' })
+  async cleanupTokensAndOtps() {
+    return await this.authService.cleanupTokensAndOtps();
   }
 }

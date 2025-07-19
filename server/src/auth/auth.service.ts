@@ -59,6 +59,10 @@ export class AuthService {
           salt,
           role,
         },
+        omit: {
+          password: true,
+          salt: true,
+        },
       });
 
       if (!user)
@@ -74,8 +78,6 @@ export class AuthService {
       };
 
       const token = await this.signJwtTokenToCookies(res, payload);
-      delete user.password;
-      delete user.salt;
 
       return {
         message: 'Registration successful',
@@ -179,20 +181,6 @@ export class AuthService {
     }
   }
 
-  async findUserByIdentifier(
-    identifier: string,
-    channel?: OtpChannel,
-  ): Promise<{ id: string } | null> {
-    const isEmail =
-      (channel && channel === OtpChannel.EMAIL) || identifier.includes('@');
-    return this.prisma.user.findUnique({
-      where: {
-        ...(isEmail ? { email: identifier } : { phone: identifier }),
-      },
-      select: { id: true },
-    });
-  }
-
   async sendOtp(
     req: Request,
     res: Response,
@@ -275,6 +263,115 @@ export class AuthService {
         err.message || 'Failed to send OTP',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async findUserByIdentifier(
+    identifier: string,
+    channel?: OtpChannel,
+  ): Promise<{ id: string } | null> {
+    const isEmail =
+      (channel && channel === OtpChannel.EMAIL) || identifier.includes('@');
+    return this.prisma.user.findUnique({
+      where: {
+        ...(isEmail ? { email: identifier } : { phone: identifier }),
+      },
+      select: { id: true },
+    });
+  }
+
+  private async checkRateLimit(
+    identifier: string,
+    action: string,
+  ): Promise<void> {
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW); // 1 hour window
+
+    const rateLimit = await this.prisma.rateLimit.findUnique({
+      where: {
+        identifier_action: {
+          identifier,
+          action,
+        },
+      },
+    });
+
+    if (rateLimit) {
+      if (
+        rateLimit.windowStart > windowStart &&
+        rateLimit.count >= RATE_LIMIT_MAX_REQUESTS
+      ) {
+        throw throwError(
+          'Rate limit exceeded. Please try again later.',
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+    }
+  }
+
+  private async updateRateLimit(
+    identifier: string,
+    action: string,
+  ): Promise<void> {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + RATE_LIMIT_WINDOW); // 1 hour expiration
+
+    await this.prisma.rateLimit.upsert({
+      where: {
+        identifier_action: {
+          identifier,
+          action,
+        },
+      },
+      update: {
+        count: {
+          increment: 1,
+        },
+        expiresAt,
+      },
+      create: {
+        identifier,
+        action,
+        count: 1,
+        windowStart: now,
+        expiresAt,
+      },
+    });
+  }
+
+  private async cleanUpExpiredOtps(
+    identifier: string,
+    type: OtpType,
+  ): Promise<void> {
+    const now = new Date();
+    await this.prisma.otpVerification.deleteMany({
+      where: {
+        identifier,
+        type,
+        expiresAt: {
+          lt: now,
+        },
+      },
+    });
+  }
+
+  private async sendOtpViaChannel(
+    identifier: string,
+    type: OtpType,
+    channel: OtpChannel,
+    otp: string,
+  ): Promise<void> {
+    switch (channel) {
+      case OtpChannel.EMAIL: {
+        console.log(
+          `Sending OTP ${otp} to ${identifier} via Email for ${type}`,
+        );
+        break;
+      }
+      case OtpChannel.SMS: {
+        console.log(`Sending OTP ${otp} to ${identifier} via SMS for ${type}`);
+        break;
+      }
     }
   }
 
@@ -361,93 +458,6 @@ export class AuthService {
     }
   }
 
-  private async checkRateLimit(
-    identifier: string,
-    action: string,
-  ): Promise<void> {
-    const now = new Date();
-    const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW); // 1 hour window
-
-    const rateLimit = await this.prisma.rateLimit.findUnique({
-      where: {
-        identifier_action: {
-          identifier,
-          action,
-        },
-      },
-    });
-
-    if (rateLimit) {
-      if (
-        rateLimit.windowStart > windowStart &&
-        rateLimit.count >= RATE_LIMIT_MAX_REQUESTS
-      ) {
-        throw throwError(
-          'Rate limit exceeded. Please try again later.',
-          HttpStatus.TOO_MANY_REQUESTS,
-        );
-      }
-    }
-  }
-
-  private async updateRateLimit(
-    identifier: string,
-    action: string,
-  ): Promise<void> {
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + RATE_LIMIT_WINDOW); // 1 hour expiration
-
-    await this.prisma.rateLimit.upsert({
-      where: {
-        identifier_action: {
-          identifier,
-          action,
-        },
-      },
-      update: {
-        count: {
-          increment: 1,
-        },
-        expiresAt,
-      },
-      create: {
-        identifier,
-        action,
-        count: 1,
-        windowStart: now,
-        expiresAt,
-      },
-    });
-  }
-
-  private async cleanUpExpiredOtps(
-    identifier: string,
-    type: OtpType,
-  ): Promise<void> {
-    const now = new Date();
-    await this.prisma.otpVerification.deleteMany({
-      where: {
-        identifier,
-        type,
-        expiresAt: {
-          lt: now,
-        },
-      },
-    });
-  }
-
-  private getClientIpAndUserAgent(req: Request): {
-    ipAddress: string;
-    userAgent: string;
-  } {
-    const ipAddress = '';
-    // req.headers['x-forwarded-for']?.[0]?.split(',')[0] ||
-    // req.headers['x-real-ip'] ||
-    // null;
-    const userAgent = req.headers['user-agent'] || '';
-    return { ipAddress, userAgent };
-  }
-
   private async handleOtpTypeOperations(
     userId: string,
     type: OtpType,
@@ -517,23 +527,62 @@ export class AuthService {
     });
   }
 
-  private async sendOtpViaChannel(
-    identifier: string,
-    type: OtpType,
-    channel: OtpChannel,
-    otp: string,
-  ): Promise<void> {
-    switch (channel) {
-      case OtpChannel.EMAIL: {
-        console.log(
-          `Sending OTP ${otp} to ${identifier} via Email for ${type}`,
-        );
-        break;
-      }
-      case OtpChannel.SMS: {
-        console.log(`Sending OTP ${otp} to ${identifier} via SMS for ${type}`);
-        break;
-      }
+  private getClientIpAndUserAgent(req: Request): {
+    ipAddress: string;
+    userAgent: string;
+  } {
+    const ipAddress = '';
+    // req.headers['x-forwarded-for']?.[0]?.split(',')[0] ||
+    // req.headers['x-real-ip'] ||
+    // null;
+    const userAgent = req.headers['user-agent'] || '';
+    return { ipAddress, userAgent };
+  }
+
+  async cleanupTokensAndOtps(): Promise<ApiResponse> {
+    try {
+      const now = new Date();
+
+      const [expiredOtps, expiredTokens, expiredRateLimits] = await Promise.all(
+        [
+          await this.prisma.otpVerification.deleteMany({
+            where: {
+              expiresAt: {
+                lt: now,
+              },
+            },
+          }),
+          this.prisma.verificationToken.deleteMany({
+            where: {
+              expiresAt: {
+                lt: now,
+              },
+            },
+          }),
+          this.prisma.rateLimit.deleteMany({
+            where: {
+              expiresAt: {
+                lt: now,
+              },
+            },
+          }),
+        ],
+      );
+
+      return {
+        message: 'Cleanup successful',
+        success: true,
+        data: {
+          expiredOtps: expiredOtps.count,
+          expiredTokens: expiredTokens.count,
+          expiredRateLimits: expiredRateLimits.count,
+        },
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to clean up tokens and OTPs',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

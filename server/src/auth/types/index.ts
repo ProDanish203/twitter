@@ -16,12 +16,12 @@ export interface GoogleUser {
 }
 
 export interface RegisterUserResponse {
-  user: User;
+  user: Omit<User, 'password' | 'salt'>;
   token: string;
 }
 
 export interface LoginUserResponse {
-  user: User;
+  user: Omit<User, 'password' | 'salt'>;
   token: string;
 }
 
