@@ -22,6 +22,8 @@ import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import {
   OTP_EXPIRATION_TIME,
   OTP_MAX_ATTEMPTS,
+  OTP_RESEND_INTERVAL,
+  PASSWORD_RESET_TOKEN_EXPIRATION,
   RATE_LIMIT_MAX_REQUESTS,
   RATE_LIMIT_WINDOW,
 } from 'src/common/lib/constants';
@@ -252,11 +254,99 @@ export class AuthService {
       return {
         message: 'OTP sent successfully',
         success: true,
-        data: otp, // TODO: remove this in production
       };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to send OTP',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async resendOtp(req: Request, dto: SendOtpDto) {
+    try {
+      const { identifier, otpChannel, type } = dto;
+      const { ipAddress, userAgent } = this.getClientIpAndUserAgent(req);
+
+      await Promise.all([
+        this.checkRateLimit(identifier, 'resend_otp'),
+        this.cleanUpExpiredOtps(identifier, type),
+      ]);
+      // check if there is an existing OTP session, so we can resend the OTP
+      const existingOtp = await this.prisma.otpVerification.findFirst({
+        where: {
+          identifier,
+          type,
+          verified: false, // OTP must not be used yet
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+
+      if (!existingOtp) {
+        await this.updateRateLimit(identifier, 'resend_otp');
+        throw throwError(
+          'OTP session invalid, please request a new OTP',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const timeSinceLastOtp = Date.now() - existingOtp.createdAt.getTime();
+      // Check if the resend interval has passed
+      if (timeSinceLastOtp < OTP_RESEND_INTERVAL) {
+        await this.updateRateLimit(identifier, 'resend_otp');
+        throw throwError(
+          `Please wait ${Math.ceil(
+            (OTP_RESEND_INTERVAL - timeSinceLastOtp) / 1000,
+          )} seconds before requesting a new OTP`,
+          HttpStatus.TOO_MANY_REQUESTS,
+        );
+      }
+
+      const user = await this.findUserByIdentifier(identifier, otpChannel);
+      if (!user || !user.id) {
+        await this.updateRateLimit(identifier, 'resend_otp');
+        throw throwError('Account not found', HttpStatus.NOT_FOUND);
+      }
+
+      // Generate a new OTP
+      const otp = generateSecureOTP();
+      const hashedOtp = await bcrypt.hash(otp, 10);
+      const expiresAt = new Date(Date.now() + OTP_EXPIRATION_TIME);
+
+      const updatedOtpRecord = await this.prisma.otpVerification.update({
+        where: { id: existingOtp.id },
+        data: {
+          code: hashedOtp,
+          expiresAt,
+          attempts: 0, // Reset attempts
+          userId: user.id,
+          updatedAt: new Date(),
+        },
+      });
+
+      if (!updatedOtpRecord)
+        throw throwError(
+          'Failed to resend OTP',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+
+      await Promise.all([
+        this.sendOtpViaChannel(identifier, type, otpChannel, otp),
+        this.updateRateLimit(identifier, 'resend_otp'),
+      ]);
+
+      return {
+        message: 'OTP resent successfully',
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to resend OTP',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -298,7 +388,9 @@ export class AuthService {
         rateLimit.count >= RATE_LIMIT_MAX_REQUESTS
       ) {
         throw throwError(
-          'Rate limit exceeded. Please try again later.',
+          `Rate limit exceeded. Please try again after ${Math.ceil(
+            (rateLimit.expiresAt.getTime() - now.getTime()) / 1000,
+          )} seconds.`,
           HttpStatus.TOO_MANY_REQUESTS,
         );
       }
@@ -512,7 +604,7 @@ export class AuthService {
         userId,
         token,
         type,
-        expiresAt: new Date(Date.now() + OTP_EXPIRATION_TIME),
+        expiresAt: new Date(Date.now() + PASSWORD_RESET_TOKEN_EXPIRATION),
       },
     });
 

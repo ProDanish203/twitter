@@ -9,7 +9,7 @@ import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { Cron } from '@nestjs/schedule';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto';
-import { VerifyOtpDto } from './dto/otp.dto';
+import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -64,6 +64,18 @@ export class AuthController {
   @ApiProperty({ title: 'Reset Password' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return await this.authService.resetPassword(dto);
+  }
+
+  @Post('send-otp')
+  @ApiProperty({ title: 'Send OTP' })
+  async sendOtp(@Req() request: Request, @Body() dto: SendOtpDto) {
+    return await this.authService.sendOtp(request, dto);
+  }
+
+  @Post('resend-otp')
+  @ApiProperty({ title: 'Resend OTP' })
+  async resendOtp(@Req() request: Request, @Body() dto: SendOtpDto) {
+    return await this.authService.resendOtp(request, dto);
   }
 
   @Post('verify-otp')
