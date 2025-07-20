@@ -110,6 +110,7 @@ export class AuthController {
     @Req() request: Request,
     @Res({ passthrough: true }) response: Response,
   ) {
-    return await this.authService.signinWithGoogle(request, response);
+    await this.authService.signinWithGoogle(request, response);
+    return response.redirect(`${process.env.GOOGLE_REDIRECT_URL_CLIENT_REACT}`);
   }
 }
