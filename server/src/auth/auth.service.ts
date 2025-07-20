@@ -3,13 +3,18 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
 import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
-import { generateSecureOTP, throwError } from 'src/common/utils/helpers';
+import {
+  generateSecureOTP,
+  generateSecurePassword,
+  throwError,
+} from 'src/common/utils/helpers';
 import {
   generateSecureToken,
   hashPassword,
   verifyPassword,
 } from 'src/common/utils/hash';
 import {
+  GoogleUser,
   JwtPayload,
   LoginUserResponse,
   OtpVerificationResponse,
@@ -17,7 +22,7 @@ import {
 } from './types';
 import { CookieOptions, Request, Response } from 'express';
 import { ApiResponse } from 'src/common/types/types';
-import { OtpChannel, OtpType, User } from '@prisma/client';
+import { OtpChannel, OtpType, User, UserRole } from '@prisma/client';
 import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import {
   OTP_EXPIRATION_TIME,
@@ -750,6 +755,88 @@ export class AuthService {
     } catch (err) {
       throw throwError(
         err.message || 'Failed to reset password',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async registerGoogleUser(googleUser: GoogleUser): Promise<User> {
+    try {
+      const password = generateSecurePassword();
+      const { hash, salt } = hashPassword(password);
+      const user = await this.prisma.user.create({
+        data: {
+          email: googleUser.email,
+          name: googleUser.name,
+          avatar: googleUser.avatar,
+          role: UserRole.USER,
+          loginProvider: 'GOOGLE',
+          providerId: googleUser.providerId,
+          // Random password for Google users
+          password: hash,
+          salt,
+        },
+      });
+
+      if (!user)
+        throw throwError(
+          'Failed to register Google user',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+
+      return user;
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to register Google user',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async signinWithGoogle(
+    req: Request,
+    res: Response,
+  ): Promise<ApiResponse<LoginUserResponse>> {
+    try {
+      const googleUser = req.user as unknown as GoogleUser; // Assuming user is set by GoogleOAuthGuard
+      if (
+        !googleUser ||
+        !googleUser.email ||
+        !googleUser.providerId ||
+        !googleUser.name
+      )
+        throw throwError('Google sign-in failed', HttpStatus.UNAUTHORIZED);
+
+      let user = await this.prisma.user.findUnique({
+        where: { email: googleUser.email },
+      });
+
+      // Register the user if they don't exist
+      if (!user) {
+        user = await this.registerGoogleUser(googleUser);
+      }
+
+      const payload: JwtPayload = {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      };
+
+      const token = await this.signJwtTokenToCookies(res, payload);
+      delete user.password;
+      delete user.salt;
+
+      return {
+        message: 'Google sign-in successful',
+        success: true,
+        data: {
+          user,
+          token,
+        },
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to sign in with Google',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
