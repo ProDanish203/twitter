@@ -7,10 +7,11 @@ export type JwtPayload = {
 };
 
 export interface GoogleUser {
+  provider: 'google';
+  providerId: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  picture: string;
+  name: string;
+  avatar: string;
   accessToken: string;
   refreshToken: string;
 }

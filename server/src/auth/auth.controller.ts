@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiProperty, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
@@ -10,6 +18,7 @@ import { Roles } from 'src/common/decorators/roles.decorator';
 import { Cron } from '@nestjs/schedule';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto';
 import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
+import { GoogleOAuthGuard } from 'src/common/guards/google-auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -52,7 +61,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  @ApiProperty({ title: 'Forgot Password' })
+  @ApiProperty({ title: 'Forgot Password', type: ForgotPasswordDto })
   async forgotPassword(
     @Req() request: Request,
     @Body() dto: ForgotPasswordDto,
@@ -61,25 +70,25 @@ export class AuthController {
   }
 
   @Post('reset-password')
-  @ApiProperty({ title: 'Reset Password' })
+  @ApiProperty({ title: 'Reset Password', type: ResetPasswordDto })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return await this.authService.resetPassword(dto);
   }
 
   @Post('send-otp')
-  @ApiProperty({ title: 'Send OTP' })
+  @ApiProperty({ title: 'Send OTP', type: SendOtpDto })
   async sendOtp(@Req() request: Request, @Body() dto: SendOtpDto) {
     return await this.authService.sendOtp(request, dto);
   }
 
   @Post('resend-otp')
-  @ApiProperty({ title: 'Resend OTP' })
+  @ApiProperty({ title: 'Resend OTP', type: SendOtpDto })
   async resendOtp(@Req() request: Request, @Body() dto: SendOtpDto) {
     return await this.authService.resendOtp(request, dto);
   }
 
   @Post('verify-otp')
-  @ApiProperty({ title: 'Verify OTP' })
+  @ApiProperty({ title: 'Verify OTP', type: VerifyOtpDto })
   async verifyOtp(@Req() request: Request, @Body() dto: VerifyOtpDto) {
     return await this.authService.verifyOtp(request, dto);
   }
@@ -88,5 +97,19 @@ export class AuthController {
   @ApiOperation({ summary: 'Cleanup Tokens and OTPs' })
   async cleanupTokensAndOtps() {
     return await this.authService.cleanupTokensAndOtps();
+  }
+
+  @UseGuards(GoogleOAuthGuard)
+  @Get('google')
+  async googleAuth(@Req() request: Request) {}
+
+  @UseGuards(GoogleOAuthGuard)
+  @Get('google/callback')
+  @ApiOperation({ summary: 'Google OAuth Callback' })
+  async googleAuthCallback(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return await this.authService.signinWithGoogle(request, response);
   }
 }

@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
 import { ConfigService } from '@nestjs/config';
+import { GoogleStrategy } from './strategies/google-oauth.strategy';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, PrismaService, StorageService],
+  providers: [AuthService, PrismaService, StorageService, GoogleStrategy],
 })
 export class AuthModule {}

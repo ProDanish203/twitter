@@ -20,9 +20,11 @@ model User {
   bio       String?
   gender    Gender    @default(MALE)
   birthDate DateTime?
+  onboarded Boolean   @default(false)
 
   role          UserRole      @default(USER)
   loginProvider LoginProvider @default(LOCAL)
+  providerId    String? // For OAuth providers like Google
 
   isEmailVerified  Boolean @default(false)
   isPhoneVerified  Boolean @default(false)
