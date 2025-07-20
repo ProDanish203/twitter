@@ -26,6 +26,7 @@ import {
   RATE_LIMIT_WINDOW,
 } from 'src/common/lib/constants';
 import * as bcrypt from 'bcryptjs';
+import { ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto';
 
 @Injectable()
 export class AuthService {
@@ -162,7 +163,6 @@ export class AuthService {
   async logout(user: User, res: Response): Promise<ApiResponse<null>> {
     try {
       const cookieOptions: CookieOptions = {
-        maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
         httpOnly: true,
         secure: true,
         sameSite: 'none',
@@ -181,11 +181,7 @@ export class AuthService {
     }
   }
 
-  async sendOtp(
-    req: Request,
-    res: Response,
-    dto: SendOtpDto,
-  ): Promise<ApiResponse<string>> {
+  async sendOtp(req: Request, dto: SendOtpDto): Promise<ApiResponse<string>> {
     try {
       const { identifier, type, otpChannel } = dto;
       const { ipAddress, userAgent } = this.getClientIpAndUserAgent(req);
@@ -256,7 +252,7 @@ export class AuthService {
       return {
         message: 'OTP sent successfully',
         success: true,
-        data: otp,
+        data: otp, // TODO: remove this in production
       };
     } catch (err) {
       throw throwError(
@@ -581,6 +577,87 @@ export class AuthService {
     } catch (err) {
       throw throwError(
         err.message || 'Failed to clean up tokens and OTPs',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async forgotPassword(
+    req: Request,
+    { identifier }: ForgotPasswordDto,
+  ): Promise<ApiResponse> {
+    try {
+      const user = await this.findUserByIdentifier(identifier);
+      if (!user) throw throwError('User not found', HttpStatus.BAD_REQUEST);
+
+      const otpResponse = await this.sendOtp(req, {
+        identifier,
+        type: OtpType.PASSWORD_RESET,
+        otpChannel: OtpChannel.EMAIL,
+      });
+      if (!otpResponse.success) {
+        throw throwError(
+          'Failed to send OTP for password reset',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      return {
+        message: 'Forgot password request processed successfully',
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to process forgot password request',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async resetPassword({
+    newPassword,
+    resetToken,
+  }: ResetPasswordDto): Promise<ApiResponse> {
+    try {
+      const verificationToken = await this.prisma.verificationToken.findFirst({
+        where: {
+          token: resetToken,
+          type: OtpType.PASSWORD_RESET,
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
+      });
+
+      if (!verificationToken)
+        throw throwError(
+          'Invalid or expired reset token',
+          HttpStatus.BAD_REQUEST,
+        );
+
+      const { hash, salt } = hashPassword(newPassword);
+
+      await Promise.all([
+        this.prisma.user.update({
+          where: { id: verificationToken.userId },
+          data: {
+            password: hash,
+            salt: salt,
+          },
+        }),
+        // Remove the verification token after successful reset
+        this.prisma.verificationToken.delete({
+          where: { id: verificationToken.id },
+        }),
+      ]);
+
+      return {
+        message: 'Password reset successful',
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to reset password',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
