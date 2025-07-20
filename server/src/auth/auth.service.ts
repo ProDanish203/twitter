@@ -558,7 +558,7 @@ export class AuthService {
   ): Promise<any> {
     switch (type) {
       case OtpType.EMAIL_VERIFICATION:
-        return await this.verifyEmail(userId);
+        return await this.handleVerifyEmail(userId);
       case OtpType.PASSWORD_RESET:
         return await this.handlePasswordReset(userId, type, token);
       case OtpType.PHONE_VERIFICATION:
@@ -572,7 +572,7 @@ export class AuthService {
     }
   }
 
-  private async verifyEmail(
+  private async handleVerifyEmail(
     userId: string,
   ): Promise<Omit<User, 'password' | 'salt'>> {
     return await this.prisma.user.update({
@@ -755,6 +755,32 @@ export class AuthService {
     } catch (err) {
       throw throwError(
         err.message || 'Failed to reset password',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async verifyEmail(req: Request, user: User): Promise<ApiResponse> {
+    try {
+      if (user.isEmailVerified)
+        return {
+          message: 'Email already verified',
+          success: true,
+        };
+
+      await this.sendOtp(req, {
+        identifier: user.email,
+        type: OtpType.EMAIL_VERIFICATION,
+        otpChannel: OtpChannel.EMAIL,
+      });
+
+      return {
+        message: 'Verification email sent successfully',
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to verify email',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

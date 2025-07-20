@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Post,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -73,6 +74,14 @@ export class AuthController {
   @ApiProperty({ title: 'Reset Password', type: ResetPasswordDto })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return await this.authService.resetPassword(dto);
+  }
+
+  @Put('verify-email')
+  @UseGuards(AuthGuard)
+  @Roles(...Object.values(UserRole))
+  @ApiProperty({ title: 'Verify Email' })
+  async verifyEmail(@Req() request: Request, @CurrentUser() user: User) {
+    return await this.authService.verifyEmail(request, user);
   }
 
   @Post('send-otp')
