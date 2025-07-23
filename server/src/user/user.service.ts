@@ -37,11 +37,49 @@ export class UserService {
     }
   }
 
-  async getUserProfile(userId: string) {
+  async getUserProfile(
+    userId: string,
+  ): Promise<ApiResponse<Omit<User, 'password' | 'salt'>>> {
     try {
+      const userProfile = await this.prismaService.user.findUnique({
+        where: { id: userId },
+        omit: {
+          password: true,
+          salt: true,
+        },
+      });
+
+      if (!userProfile)
+        throw throwError('User not found', HttpStatus.NOT_FOUND);
+
+      return {
+        message: 'User profile retrieved successfully',
+        success: true,
+        data: userProfile,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to retrieve user profile',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updateProfile(user: User) {
+    try {
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to update user profile',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async deleteProfile(user: User) {
+    try {
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to delete user profile',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
