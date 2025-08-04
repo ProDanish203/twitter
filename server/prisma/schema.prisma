@@ -20,6 +20,8 @@ model User {
   bio       String?
   gender    Gender    @default(MALE)
   birthDate DateTime?
+  city      String?
+  country   String?
   onboarded Boolean   @default(false)
 
   role          UserRole      @default(USER)
