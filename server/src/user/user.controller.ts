@@ -1,20 +1,11 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Put,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User, UserRole } from '@prisma/client';
 import { ApiProperty, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 
 @Controller('user')
 @ApiTags('User')
@@ -34,6 +25,16 @@ export class UserController {
   @ApiProperty({ title: 'Get User Profile' })
   async getProfile(@CurrentUser() user: User) {
     return this.userService.getProfile(user);
+  }
+
+  @Patch('profile/update')
+  @Roles(...Object.values(UserRole))
+  @ApiProperty({ title: 'Update User Profile' })
+  async updateProfile(
+    @CurrentUser() user: User,
+    @Body() updateData: UpdateUserProfileDto,
+  ) {
+    return this.userService.updateProfile(user, updateData);
   }
 
   @Patch('delete')
