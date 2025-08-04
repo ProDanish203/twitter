@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Put,
   Req,
@@ -33,5 +34,12 @@ export class UserController {
   @ApiProperty({ title: 'Get User Profile' })
   async getProfile(@CurrentUser() user: User) {
     return this.userService.getProfile(user);
+  }
+
+  @Patch('delete')
+  @Roles(...Object.values(UserRole))
+  @ApiProperty({ title: 'Delete User Profile' })
+  async deleteProfile(@CurrentUser() user: User) {
+    return this.userService.deleteProfile(user);
   }
 }

@@ -112,6 +112,7 @@ export class AuthService {
       const user = await this.prisma.user.findUnique({
         where: {
           ...(isEmail ? { email: entity } : { username: entity }),
+          deletedAt: null,
         },
       });
 
@@ -366,6 +367,7 @@ export class AuthService {
     return this.prisma.user.findUnique({
       where: {
         ...(isEmail ? { email: identifier } : { phone: identifier }),
+        deletedAt: null,
       },
       select: { id: true },
     });

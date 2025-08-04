@@ -75,8 +75,17 @@ export class UserService {
     }
   }
 
-  async deleteProfile(user: User) {
+  async deleteProfile(user: User): Promise<ApiResponse<void>> {
     try {
+      await this.prismaService.user.update({
+        where: { id: user.id },
+        data: { deletedAt: new Date() },
+      });
+
+      return {
+        message: 'User profile deleted successfully',
+        success: true,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to delete user profile',
