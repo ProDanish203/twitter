@@ -844,6 +844,10 @@ export class AuthService {
         user = await this.registerGoogleUser(googleUser);
       }
 
+      if (user.deletedAt) {
+        throw throwError('User account is deleted', HttpStatus.FORBIDDEN);
+      }
+
       const payload: JwtPayload = {
         id: user.id,
         email: user.email,
