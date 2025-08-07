@@ -5,6 +5,7 @@ import { StorageService } from 'src/common/services/storage.service';
 import { ApiResponse } from 'src/common/types/types';
 import { throwError } from 'src/common/utils/helpers';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { UpdateUserNameDto } from './dto/user-common.dto';
 
 @Injectable()
 export class UserService {
@@ -159,8 +160,33 @@ export class UserService {
     }
   }
 
-  async updateUsername(user: User) {
+  async updateUsername(
+    user: User,
+    { username }: UpdateUserNameDto,
+  ): Promise<ApiResponse<Omit<User, 'password' | 'salt' | 'providerId'>>> {
     try {
+      const usernameExists = await this.prismaService.user.findUnique({
+        where: { username },
+      });
+
+      if (usernameExists && usernameExists.id !== user.id)
+        throw throwError('Username already exists', HttpStatus.BAD_REQUEST);
+
+      const updatedUser = await this.prismaService.user.update({
+        where: { id: user.id },
+        data: { username: username.trim().toLowerCase() },
+        omit: {
+          password: true,
+          salt: true,
+          providerId: true,
+        },
+      });
+
+      return {
+        message: 'Username updated successfully',
+        success: true,
+        data: updatedUser,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to update username',

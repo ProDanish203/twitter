@@ -6,6 +6,7 @@ import { ApiProperty, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
+import { UpdateUserNameDto } from './dto/user-common.dto';
 
 @Controller('user')
 @ApiTags('User')
@@ -42,5 +43,22 @@ export class UserController {
   @ApiProperty({ title: 'Delete User Profile' })
   async deleteProfile(@CurrentUser() user: User) {
     return this.userService.deleteProfile(user);
+  }
+
+  @Patch('update-username')
+  @Roles(...Object.values(UserRole))
+  @ApiProperty({ title: 'Update Username' })
+  async updateUsername(
+    @CurrentUser() user: User,
+    @Body() dto: UpdateUserNameDto,
+  ) {
+    return this.userService.updateUsername(user, dto);
+  }
+
+  @Patch('upload-profile-image')
+  @Roles(...Object.values(UserRole))
+  @ApiProperty({ title: 'Update Username' })
+  async uploadProfileImage(@CurrentUser() user: User) {
+    return this.userService.uploadProfileImage(user);
   }
 }
