@@ -878,9 +878,7 @@ export class AuthService {
     }
   }
 
-  async checkUsername({
-    username,
-  }: CheckUsernameDto): Promise<ApiResponse<boolean>> {
+  async checkUsername(username: string): Promise<ApiResponse<boolean>> {
     try {
       const existingUser = await this.prisma.user.findUnique({
         where: { username },

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Patch,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -10,19 +11,31 @@ import {
 import { UserService } from './user.service';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User, UserRole } from '@prisma/client';
-import { ApiProperty, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
+import { ApiProperty, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UpdateUserNameDto } from './dto/user-common.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MulterFile } from 'src/common/types/types';
+import { MulterFile, QueryParams } from 'src/common/types/types';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @Controller('user')
 @ApiTags('User')
 @UseGuards(AuthGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Roles(UserRole.ADMIN)
+  @ApiProperty({ title: 'Get All Users' })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiQuery({ name: 'sort', type: String, required: false })
+  @ApiQuery({ name: 'filter', type: String, required: false })
+  @ApiQuery({ name: 'search', type: String, required: false })
+  @Get('all')
+  async getAllUsers(@CurrentUser() user: User, @Query() query: QueryParams) {
+    return await this.userService.getAllUsers(user, query);
+  }
 
   @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Get Current User' })

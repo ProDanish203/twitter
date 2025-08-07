@@ -4,12 +4,13 @@ import {
   Get,
   Post,
   Put,
+  Query,
   Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiProperty, ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiProperty, ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import {
   CheckUsernameDto,
   LoginUserDto,
@@ -113,8 +114,9 @@ export class AuthController {
   }
 
   @Get('check-username')
-  async checkUserrname(@Body() dto: CheckUsernameDto) {
-    return await this.authService.checkUsername(dto);
+  @ApiQuery({ name: 'username', type: String, required: true })
+  async checkUserrname(@Query('username') username: string) {
+    return await this.authService.checkUsername(username);
   }
 
   @UseGuards(GoogleOAuthGuard)

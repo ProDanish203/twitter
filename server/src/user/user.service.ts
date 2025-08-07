@@ -1,11 +1,13 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
-import { ApiResponse, MulterFile } from 'src/common/types/types';
+import { ApiResponse, MulterFile, QueryParams } from 'src/common/types/types';
 import { throwError } from 'src/common/utils/helpers';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UpdateUserNameDto } from './dto/user-common.dto';
+import { userSelect } from './queries';
+import { GetAllUserResponse } from './types';
 
 @Injectable()
 export class UserService {
@@ -13,6 +15,71 @@ export class UserService {
     private readonly prismaService: PrismaService,
     private readonly storageService: StorageService,
   ) {}
+
+  async getAllUsers(
+    user: User,
+    query?: QueryParams,
+  ): Promise<ApiResponse<GetAllUserResponse>> {
+    try {
+      const {
+        page = 1,
+        limit = 20,
+        search = '',
+        filter = '',
+        sort = '',
+      } = query || {};
+
+      const where: Prisma.UserWhereInput = {
+        deletedAt: null,
+        id: { not: user.id },
+      };
+      const orderBy: Prisma.UserOrderByWithRelationInput = {};
+
+      if (search) {
+        where.OR = [
+          { username: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ];
+      }
+
+      if (filter) orderBy[filter] = 'asc';
+      if (sort) orderBy[sort] = 'desc';
+
+      const [users, totalCount] = await Promise.all([
+        this.prismaService.user.findMany({
+          select: userSelect,
+          where,
+          orderBy,
+          skip: (Number(page) - 1) * Number(limit),
+          take: Number(limit),
+        }),
+        this.prismaService.user.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      return {
+        message: 'Users retrieved successfully',
+        success: true,
+        data: {
+          users,
+          pagination: {
+            totalCount,
+            totalPages,
+            page: Number(page),
+            limit: Number(limit),
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          },
+        },
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to retrieve users',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
   async getProfile(
     user: User,
