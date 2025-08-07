@@ -91,3 +91,15 @@ export class LoginUserDto {
   })
   password: string;
 }
+
+export class CheckUsernameDto {
+  @IsNotEmpty({ message: 'Username is required' })
+  @IsString({ message: 'Username must be a string' })
+  @Transform(({ value }) => value.trim().toLowerCase())
+  @ApiProperty({
+    type: String,
+    required: true,
+    example: 'theonlyadmin',
+  })
+  username: string;
+}

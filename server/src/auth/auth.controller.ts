@@ -10,7 +10,11 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiProperty, ApiTags, ApiOperation } from '@nestjs/swagger';
-import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
+import {
+  CheckUsernameDto,
+  LoginUserDto,
+  RegisterUserDto,
+} from './dto/auth.dto';
 import { Request, Response } from 'express';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User, UserRole } from '@prisma/client';
@@ -106,6 +110,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Cleanup Tokens and OTPs' })
   async cleanupTokensAndOtps() {
     return await this.authService.cleanupTokensAndOtps();
+  }
+
+  @Get('check-username')
+  async checkUserrname(@Body() dto: CheckUsernameDto) {
+    return await this.authService.checkUsername(dto);
   }
 
   @UseGuards(GoogleOAuthGuard)

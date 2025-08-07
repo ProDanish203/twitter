@@ -2,7 +2,11 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
-import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
+import {
+  CheckUsernameDto,
+  LoginUserDto,
+  RegisterUserDto,
+} from './dto/auth.dto';
 import {
   generateSecureOTP,
   generateSecurePassword,
@@ -869,6 +873,35 @@ export class AuthService {
     } catch (err) {
       throw throwError(
         err.message || 'Failed to sign in with Google',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async checkUsername({
+    username,
+  }: CheckUsernameDto): Promise<ApiResponse<boolean>> {
+    try {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { username },
+      });
+
+      if (existingUser) {
+        return {
+          message: 'Username already exists',
+          success: true,
+          data: false,
+        };
+      } else {
+        return {
+          message: 'Username is available',
+          success: true,
+          data: true,
+        };
+      }
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to check username',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
