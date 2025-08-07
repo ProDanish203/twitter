@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { User, UserRole } from '@prisma/client';
@@ -7,6 +15,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UpdateUserNameDto } from './dto/user-common.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { MulterFile } from 'src/common/types/types';
 
 @Controller('user')
 @ApiTags('User')
@@ -58,7 +68,11 @@ export class UserController {
   @Patch('upload-profile-image')
   @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Update Username' })
-  async uploadProfileImage(@CurrentUser() user: User) {
-    return this.userService.uploadProfileImage(user);
+  @UseInterceptors(FileInterceptor('profileImage'))
+  async uploadProfileImage(
+    @CurrentUser() user: User,
+    @UploadedFile() image: MulterFile,
+  ) {
+    return this.userService.uploadProfileImage(user, image);
   }
 }

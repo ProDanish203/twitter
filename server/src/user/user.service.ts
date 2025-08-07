@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
-import { ApiResponse } from 'src/common/types/types';
+import { ApiResponse, MulterFile } from 'src/common/types/types';
 import { throwError } from 'src/common/utils/helpers';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UpdateUserNameDto } from './dto/user-common.dto';
@@ -150,8 +150,36 @@ export class UserService {
     }
   }
 
-  async uploadProfileImage(user: User) {
+  async uploadProfileImage(
+    user: User,
+    image: MulterFile,
+  ): Promise<ApiResponse<Omit<User, 'password' | 'salt' | 'providerId'>>> {
     try {
+      if (!image || !image.filename)
+        throw throwError('No image file provided', HttpStatus.BAD_REQUEST);
+
+      const imageUrl = await this.storageService.uploadFile(image);
+      if (!imageUrl)
+        throw throwError(
+          'Failed to upload image',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+
+      const updatedUser = await this.prismaService.user.update({
+        where: { id: user.id },
+        data: { avatar: imageUrl.filename },
+        omit: {
+          password: true,
+          salt: true,
+          providerId: true,
+        },
+      });
+
+      return {
+        message: 'Profile image uploaded successfully',
+        success: true,
+        data: updatedUser,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to upload profile image',
