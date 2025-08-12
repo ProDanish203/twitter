@@ -53,7 +53,7 @@ export class UserController {
 
   @Patch('profile/update')
   @Roles(...Object.values(UserRole))
-  @ApiProperty({ title: 'Update User Profile' })
+  @ApiProperty({ title: 'Update User Profile', type: UpdateUserProfileDto })
   async updateProfile(
     @CurrentUser() user: User,
     @Body() updateData: UpdateUserProfileDto,
@@ -70,7 +70,7 @@ export class UserController {
 
   @Patch('update-username')
   @Roles(...Object.values(UserRole))
-  @ApiProperty({ title: 'Update Username' })
+  @ApiProperty({ title: 'Update Username', type: UpdateUserNameDto })
   async updateUsername(
     @CurrentUser() user: User,
     @Body() dto: UpdateUserNameDto,
