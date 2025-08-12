@@ -41,11 +41,22 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Verification Relations
   otpVerifications   OtpVerification[]
   verificationTokens VerificationToken[]
 
+  // Follower Relations
+  sentRequests     FollowRequest[] @relation("SentFollowRequests")
+  receivedRequests FollowRequest[] @relation("ReceivedFollowRequests")
+  following        Follow[]        @relation("UserFollowing")
+  followers        Follow[]        @relation("UserFollowers")
+
+  stats UserStats?
+
   @@index([username])
   @@index([email])
+  @@index([isActive])
+  @@index([lastActiveAt])
 }
 
 enum UserRole {
@@ -135,4 +146,67 @@ model VerificationToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model FollowRequest {
+  fromUserId String @db.Uuid
+  toUserId   String @db.Uuid
+
+  status FollowRequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fromUser User @relation("SentFollowRequests", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("ReceivedFollowRequests", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@id([fromUserId, toUserId]) // Composite key
+  @@index([toUserId, createdAt]) // For getting pending requests
+  @@index([fromUserId]) // For checking sent requests
+  @@index([createdAt]) // For cleanup jobs
+  @@map("follow_requests")
+}
+
+enum FollowRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Follow {
+  followerId String @db.Uuid
+  followeeId String @db.Uuid
+
+  createdAt DateTime @default(now())
+
+  // Relations
+  follower User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  followee User @relation("UserFollowers", fields: [followeeId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followeeId])
+  @@index([followerId, createdAt]) // For getting following list chronologically
+  @@index([followeeId, createdAt]) // For getting followers list chronologically
+  @@index([followerId]) // For quick follow status checks
+  @@index([followeeId]) // For quick follower lookups
+  @@map("follows")
+}
+
+model UserStats {
+  userId         String @id @db.Uuid
+  followersCount Int    @default(0)
+  followingCount Int    @default(0)
+  tweetsCount    Int    @default(0)
+  likesCount     Int    @default(0)
+  commentsCount  Int    @default(0)
+
+  lastStatsUpdate DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([followersCount])
+  @@index([followingCount])
+  @@index([tweetsCount])
+  @@index([likesCount])
+  @@index([commentsCount])
+  @@map("user_stats")
 }
