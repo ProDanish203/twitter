@@ -33,7 +33,7 @@ export class UserConnectionController {
     @CurrentUser() user: User,
     @Body() dto: SendFollowRequestDto,
   ) {
-    // return this.userConnectionService.sendFollowRequest(dto);
+    return this.userConnectionService.sendFollowRequest(user, dto);
   }
 
   @Roles(UserRole.USER)
