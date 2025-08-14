@@ -74,8 +74,25 @@ export class UserConnectionService {
     }
   }
 
-  async revokeFollowRequest() {
+  async revokeFollowRequest(
+    user: User,
+    toUserId: string,
+  ): Promise<ApiResponse<FollowRequest>> {
     try {
+      const deletedRequest = await this.prismaService.followRequest.delete({
+        where: {
+          fromUserId_toUserId: {
+            fromUserId: user.id,
+            toUserId: toUserId,
+          },
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Follow request revoked successfully',
+        data: deletedRequest,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to revoke follow request',
