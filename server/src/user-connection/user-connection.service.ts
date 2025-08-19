@@ -1,12 +1,7 @@
 import { PrismaService } from 'src/common/services/prisma.service';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { throwError } from 'src/common/utils/helpers';
-import {
-  UserRole,
-  User,
-  FollowRequest,
-  FollowRequestStatus,
-} from '@prisma/client';
+import { User, FollowRequest, FollowRequestStatus } from '@prisma/client';
 import {
   RespondToFollowRequestDto,
   SendFollowRequestDto,
@@ -109,6 +104,7 @@ export class UserConnectionService {
               followersCount: {
                 increment: 1,
               },
+              lastStatsUpdate: new Date(),
             },
           }),
           this.prismaService.userStats.update({
@@ -119,6 +115,7 @@ export class UserConnectionService {
               followingCount: {
                 increment: 1,
               },
+              lastStatsUpdate: new Date(),
             },
           }),
         ]);

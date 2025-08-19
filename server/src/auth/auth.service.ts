@@ -83,6 +83,13 @@ export class AuthService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
 
+      // Create user stats
+      await this.prisma.userStats.create({
+        data: {
+          userId: user.id,
+        },
+      });
+
       const payload: JwtPayload = {
         id: user.id,
         email: user.email,
@@ -815,6 +822,13 @@ export class AuthService {
           'Failed to register Google user',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
+
+      // Create user stats
+      await this.prisma.userStats.create({
+        data: {
+          userId: user.id,
+        },
+      });
 
       return user;
     } catch (err) {
