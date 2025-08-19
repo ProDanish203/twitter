@@ -7,9 +7,10 @@ import {
   UseGuards,
   Body,
   Param,
+  Query,
 } from '@nestjs/common';
 import { UserConnectionService } from './user-connection.service';
-import { ApiTags, ApiProperty, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiProperty, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { AuthGuard } from 'src/common/guards/auth.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { User, UserRole } from '@prisma/client';
@@ -18,6 +19,7 @@ import {
   SendFollowRequestDto,
 } from './dto/requests.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { QueryParams } from 'src/common/types/types';
 
 @UseGuards(AuthGuard)
 @ApiTags('User Connection')
@@ -56,16 +58,28 @@ export class UserConnectionController {
 
   @Roles(UserRole.USER)
   @ApiProperty({ title: 'Get Sent Follow Requests' })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiQuery({ name: 'sort', type: String, required: false })
   @Get('requests/sent')
-  async getSentFollowRequests(@CurrentUser() user: User) {
-    // return this.userConnectionService.getSentFollowRequests(user.id);
+  async getSentFollowRequests(
+    @CurrentUser() user: User,
+    @Query() query: QueryParams,
+  ) {
+    return this.userConnectionService.getSentFollowRequests(user, query);
   }
 
   @Roles(UserRole.USER)
   @ApiProperty({ title: 'Get Received Follow Requests' })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiQuery({ name: 'sort', type: String, required: false })
   @Get('requests/received')
-  async getReceivedFollowRequests(@CurrentUser() user: User) {
-    // return this.userConnectionService.getReceivedFollowRequests(user.id);
+  async getReceivedFollowRequests(
+    @CurrentUser() user: User,
+    @Query() query: QueryParams,
+  ) {
+    return this.userConnectionService.getReceivedFollowRequests(user, query);
   }
 
   @Roles(UserRole.USER)

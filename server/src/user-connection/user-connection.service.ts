@@ -1,12 +1,18 @@
 import { PrismaService } from 'src/common/services/prisma.service';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { throwError } from 'src/common/utils/helpers';
-import { User, FollowRequest, FollowRequestStatus } from '@prisma/client';
+import {
+  User,
+  FollowRequest,
+  FollowRequestStatus,
+  Prisma,
+} from '@prisma/client';
 import {
   RespondToFollowRequestDto,
   SendFollowRequestDto,
 } from './dto/requests.dto';
-import { ApiResponse } from 'src/common/types/types';
+import { ApiResponse, QueryParams } from 'src/common/types/types';
+import { GetAllRequests } from './types';
 
 @Injectable()
 export class UserConnectionService {
@@ -147,8 +153,48 @@ export class UserConnectionService {
     }
   }
 
-  async getSentFollowRequests() {
+  async getSentFollowRequests(
+    user: User,
+    query?: QueryParams,
+  ): Promise<ApiResponse<GetAllRequests>> {
     try {
+      const { page = 1, limit = 20, sort } = query;
+
+      const where: Prisma.FollowRequestWhereInput = {
+        fromUserId: user.id,
+      };
+
+      const orderBy: Prisma.FollowRequestOrderByWithRelationInput = {};
+      // sort will be the field to be sorted, e.g: createdAt
+      if (sort) orderBy[sort] = 'asc';
+
+      const [sentRequests, totalCount] = await Promise.all([
+        this.prismaService.followRequest.findMany({
+          where,
+          orderBy,
+          skip: (Number(page) - 1) * Number(limit),
+          take: Number(limit),
+        }),
+        this.prismaService.followRequest.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      return {
+        message: 'Sent follow requests retrieved successfully',
+        success: true,
+        data: {
+          requests: sentRequests,
+          pagination: {
+            totalCount,
+            totalPages,
+            page: Number(page),
+            limit: Number(limit),
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          },
+        },
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to get sent follow requests',
@@ -157,8 +203,45 @@ export class UserConnectionService {
     }
   }
 
-  async getReceivedFollowRequests() {
+  async getReceivedFollowRequests(user: User, query?: QueryParams) {
     try {
+      const { page = 1, limit = 20, sort } = query;
+
+      const where: Prisma.FollowRequestWhereInput = {
+        toUserId: user.id,
+      };
+
+      const orderBy: Prisma.FollowRequestOrderByWithRelationInput = {};
+      // sort will be the field to be sorted, e.g: createdAt
+      if (sort) orderBy[sort] = 'asc';
+
+      const [followRequests, totalCount] = await Promise.all([
+        this.prismaService.followRequest.findMany({
+          where,
+          orderBy,
+          skip: (Number(page) - 1) * Number(limit),
+          take: Number(limit),
+        }),
+        this.prismaService.followRequest.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      return {
+        message: 'Received follow requests retrieved successfully',
+        success: true,
+        data: {
+          requests: followRequests,
+          pagination: {
+            totalCount,
+            totalPages,
+            page: Number(page),
+            limit: Number(limit),
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          },
+        },
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to get received follow requests',
@@ -180,6 +263,8 @@ export class UserConnectionService {
           },
         },
       });
+
+      // Delete the notification of the toUser
 
       return {
         success: true,
