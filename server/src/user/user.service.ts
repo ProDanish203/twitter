@@ -7,7 +7,11 @@ import { throwError } from 'src/common/utils/helpers';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UpdateUserNameDto } from './dto/user-common.dto';
 import { userSelect } from './queries';
-import { GetAllUserResponse } from './types';
+import {
+  GetAllUserResponse,
+  StatsAction,
+  UserStatsNumericFields,
+} from './types';
 
 @Injectable()
 export class UserService {
@@ -58,6 +62,8 @@ export class UserService {
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
+      // TODO: Generate signedurls for user images
+
       return {
         message: 'Users retrieved successfully',
         success: true,
@@ -94,6 +100,8 @@ export class UserService {
         },
       });
 
+      // TODO: Generate signedurls for user images
+
       return {
         message: 'User profile retrieved successfully',
         success: true,
@@ -121,6 +129,8 @@ export class UserService {
 
       if (!userProfile)
         throw throwError('User not found', HttpStatus.NOT_FOUND);
+
+      // TODO: Generate signedurls for user images
 
       return {
         message: 'User profile retrieved successfully',
@@ -242,6 +252,8 @@ export class UserService {
         },
       });
 
+      // TODO: Generate signedurls for user images
+
       return {
         message: 'Profile image uploaded successfully',
         success: true,
@@ -285,6 +297,34 @@ export class UserService {
     } catch (err) {
       throw throwError(
         err.message || 'Failed to update username',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async updateUserStats<T extends UserStatsNumericFields>(
+    userId: string,
+    field: T,
+    action: StatsAction,
+    count: number = 1,
+  ) {
+    try {
+      const updateData: Prisma.UserStatsUpdateInput = {
+        [field]: {
+          [action]: count,
+        } as Prisma.IntFieldUpdateOperationsInput,
+        lastStatsUpdate: new Date(),
+      };
+
+      await this.prismaService.userStats.update({
+        where: {
+          userId,
+        },
+        data: updateData,
+      });
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to update user stats',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

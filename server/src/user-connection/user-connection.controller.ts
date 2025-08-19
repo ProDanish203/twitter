@@ -90,7 +90,7 @@ export class UserConnectionController {
     @CurrentUser() user: User,
     @Param('toUserId') toUserId: string,
   ) {
-    // return this.userConnectionService.revokeFollowRequest(user.id, toUserId);
+    return this.userConnectionService.revokeFollowRequest(user, toUserId);
   }
 
   @Roles(UserRole.USER)
@@ -127,7 +127,7 @@ export class UserConnectionController {
     @CurrentUser() user: User,
     @Param('followeeId') followeeId: string,
   ) {
-    // return this.userConnectionService.unfollowUser(user.id, followeeId);
+    return this.userConnectionService.unfollowUser(user, followeeId);
   }
 
   @Roles(UserRole.USER)
@@ -138,6 +138,6 @@ export class UserConnectionController {
     @CurrentUser() user: User,
     @Param('followerId') followerId: string,
   ) {
-    // return this.userConnectionService.removeFollower(user.id, followerId);
+    return this.userConnectionService.removeFollower(user, followerId);
   }
 }

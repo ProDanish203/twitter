@@ -1,3 +1,4 @@
+import { StorageService } from './../common/services/storage.service';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { throwError } from 'src/common/utils/helpers';
@@ -13,10 +14,15 @@ import {
 } from './dto/requests.dto';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
 import { GetAllRequests, GetFollowees, GetFollowers } from './types';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class UserConnectionService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly userService: UserService,
+    private readonly storageService: StorageService,
+  ) {}
 
   async sendFollowRequest(
     user: User,
@@ -102,28 +108,16 @@ export class UserConnectionService {
 
         // Update user stats
         await Promise.all([
-          this.prismaService.userStats.update({
-            where: {
-              userId: user.id,
-            },
-            data: {
-              followersCount: {
-                increment: 1,
-              },
-              lastStatsUpdate: new Date(),
-            },
-          }),
-          this.prismaService.userStats.update({
-            where: {
-              userId: fromUserId,
-            },
-            data: {
-              followingCount: {
-                increment: 1,
-              },
-              lastStatsUpdate: new Date(),
-            },
-          }),
+          this.userService.updateUserStats(
+            user.id,
+            'followersCount',
+            'increment',
+          ),
+          this.userService.updateUserStats(
+            fromUserId,
+            'followingCount',
+            'increment',
+          ),
         ]);
 
         // TODO: Send notification to follower
@@ -180,6 +174,8 @@ export class UserConnectionService {
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
+      // TODO: Generate signedurls for user images
+
       return {
         message: 'Sent follow requests retrieved successfully',
         success: true,
@@ -226,6 +222,8 @@ export class UserConnectionService {
       ]);
 
       const totalPages = Math.ceil(totalCount / Number(limit));
+
+      // TODO: Generate signedurls for user images
 
       return {
         message: 'Received follow requests retrieved successfully',
@@ -307,6 +305,8 @@ export class UserConnectionService {
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
+      // TODO: Generate signedurls for user images
+
       return {
         message: 'Followers retrieved successfully',
         success: true,
@@ -358,6 +358,8 @@ export class UserConnectionService {
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
+      // TODO: Generate signedurls for user images
+
       return {
         message: 'Followers retrieved successfully',
         success: true,
@@ -381,8 +383,51 @@ export class UserConnectionService {
     }
   }
 
-  async unfollowUser() {
+  async unfollowUser(user: User, followeeId: string): Promise<ApiResponse> {
     try {
+      const followee = await this.prismaService.follow.findUnique({
+        where: {
+          followerId_followeeId: {
+            followerId: user.id,
+            followeeId: followeeId,
+          },
+        },
+      });
+
+      if (!followee)
+        throw throwError(
+          'You are not following this user',
+          HttpStatus.BAD_REQUEST,
+        );
+
+      // Unfollow the user
+      await this.prismaService.follow.delete({
+        where: {
+          followerId_followeeId: {
+            followerId: user.id,
+            followeeId: followeeId,
+          },
+        },
+      });
+
+      // Update user stats for both followee and follower
+      await Promise.all([
+        this.userService.updateUserStats(
+          user.id,
+          'followingCount',
+          'decrement',
+        ),
+        this.userService.updateUserStats(
+          followeeId,
+          'followersCount',
+          'decrement',
+        ),
+      ]);
+
+      return {
+        message: 'Unfollowed user successfully',
+        success: true,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to unfollow user',
@@ -391,8 +436,51 @@ export class UserConnectionService {
     }
   }
 
-  async removeFollower() {
+  async removeFollower(user: User, followerId: string): Promise<ApiResponse> {
     try {
+      const follower = await this.prismaService.follow.findUnique({
+        where: {
+          followerId_followeeId: {
+            followerId: followerId,
+            followeeId: user.id,
+          },
+        },
+      });
+
+      if (!follower)
+        throw throwError(
+          'This user is not your follower',
+          HttpStatus.BAD_REQUEST,
+        );
+
+      // Remove the follower
+      await this.prismaService.follow.delete({
+        where: {
+          followerId_followeeId: {
+            followerId: followerId,
+            followeeId: user.id,
+          },
+        },
+      });
+
+      // Update user stats for both follower and followee
+      await Promise.all([
+        this.userService.updateUserStats(
+          user.id,
+          'followersCount',
+          'decrement',
+        ),
+        this.userService.updateUserStats(
+          followerId,
+          'followingCount',
+          'decrement',
+        ),
+      ]);
+
+      return {
+        message: 'Follower removed successfully',
+        success: true,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to remove follower',
