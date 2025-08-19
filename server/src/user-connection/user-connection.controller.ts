@@ -2,7 +2,6 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Patch,
   Delete,
   UseGuards,
@@ -48,7 +47,11 @@ export class UserConnectionController {
     @Body() dto: RespondToFollowRequestDto,
     @Param('fromUserId') fromUserId: string,
   ) {
-    // return this.userConnectionService.sendFollowRequest(dto);
+    return this.userConnectionService.respondToFollowRequest(
+      user,
+      dto,
+      fromUserId,
+    );
   }
 
   @Roles(UserRole.USER)
