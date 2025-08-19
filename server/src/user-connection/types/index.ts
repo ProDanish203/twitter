@@ -1,17 +1,18 @@
 import { Follow, FollowRequest } from '@prisma/client';
 import { PaginationInfo } from 'src/common/types/types';
+import { MinimalUserSelect } from 'src/user/queries';
 
 export interface GetAllRequests {
-  requests: FollowRequest[];
+  requests: MinimalUserSelect[];
   pagination: PaginationInfo;
 }
 
 export interface GetFollowers {
-  followers: Follow[];
+  followers: MinimalUserSelect[];
   pagination: PaginationInfo;
 }
 
 export interface GetFollowees {
-  followees: Follow[];
+  followees: MinimalUserSelect[];
   pagination: PaginationInfo;
 }

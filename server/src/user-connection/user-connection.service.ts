@@ -157,38 +157,64 @@ export class UserConnectionService {
 
       const where: Prisma.FollowRequestWhereInput = {
         fromUserId: user.id,
+        status: FollowRequestStatus.PENDING,
       };
 
       const orderBy: Prisma.FollowRequestOrderByWithRelationInput = {};
       // sort will be the field to be sorted, e.g: createdAt
       if (sort) orderBy[sort] = 'asc';
 
-      const [sentRequests, totalCount] = await Promise.all([
+      const [sentRequestIds, totalCount] = await Promise.all([
         this.prismaService.followRequest.findMany({
           where,
           orderBy,
           skip: (Number(page) - 1) * Number(limit),
           take: Number(limit),
+          select: { toUserId: true, createdAt: true },
         }),
         this.prismaService.followRequest.count({ where }),
       ]);
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
-      // TODO: Generate signedurls for user images
+      if (sentRequestIds.length === 0) {
+        return {
+          message: 'No sent follow requests found',
+          success: true,
+          data: {
+            requests: [],
+            pagination: {
+              totalCount: 0,
+              totalPages: 0,
+              page: Number(page),
+              limit: Number(limit),
+              hasNextPage: false,
+              hasPrevPage: false,
+            },
+          },
+        };
+      }
+
+      const sentRequests = await this.userService.getUserByQuery(
+        {
+          id: { in: sentRequestIds.map((r) => r.toUserId) },
+          deletedAt: null,
+        },
+        minimalUserSelect,
+      );
 
       return {
         message: 'Sent follow requests retrieved successfully',
         success: true,
         data: {
-          requests: sentRequests,
+          requests: sentRequests.data,
           pagination: {
             totalCount,
             totalPages,
             page: Number(page),
             limit: Number(limit),
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
+            hasNextPage: Number(page) < totalPages,
+            hasPrevPage: Number(page) > 1,
           },
         },
       };
@@ -200,44 +226,76 @@ export class UserConnectionService {
     }
   }
 
-  async getReceivedFollowRequests(user: User, query?: QueryParams) {
+  async getReceivedFollowRequests(
+    user: User,
+    query?: QueryParams,
+  ): Promise<ApiResponse<GetAllRequests>> {
     try {
       const { page = 1, limit = 20, sort = '' } = query;
 
       const where: Prisma.FollowRequestWhereInput = {
         toUserId: user.id,
+        status: FollowRequestStatus.PENDING,
       };
 
       const orderBy: Prisma.FollowRequestOrderByWithRelationInput = {};
       // sort will be the field to be sorted, e.g: createdAt
       if (sort) orderBy[sort] = 'asc';
 
-      const [followRequests, totalCount] = await Promise.all([
+      const [followRequestUserIds, totalCount] = await Promise.all([
         this.prismaService.followRequest.findMany({
           where,
           orderBy,
           skip: (Number(page) - 1) * Number(limit),
           take: Number(limit),
+          select: {
+            fromUserId: true,
+            createdAt: true,
+          },
         }),
         this.prismaService.followRequest.count({ where }),
       ]);
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
-      // TODO: Generate signedurls for user images
+      if (followRequestUserIds.length === 0) {
+        return {
+          message: 'No received follow requests found',
+          success: true,
+          data: {
+            requests: [],
+            pagination: {
+              totalCount: 0,
+              totalPages: 0,
+              page: Number(page),
+              limit: Number(limit),
+              hasNextPage: false,
+              hasPrevPage: false,
+            },
+          },
+        };
+      }
+
+      const followRequests = await this.userService.getUserByQuery(
+        {
+          id: { in: followRequestUserIds.map((r) => r.fromUserId) },
+          deletedAt: null,
+        },
+        minimalUserSelect,
+      );
 
       return {
         message: 'Received follow requests retrieved successfully',
         success: true,
         data: {
-          requests: followRequests,
+          requests: followRequests.data,
           pagination: {
             totalCount,
             totalPages,
             page: Number(page),
             limit: Number(limit),
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
+            hasNextPage: Number(page) < totalPages,
+            hasPrevPage: Number(page) > 1,
           },
         },
       };
@@ -289,37 +347,44 @@ export class UserConnectionService {
         followeeId: user.id,
       };
 
-      if (search) {
-        where.follower = {
-          username: { contains: search, mode: 'insensitive' },
-        };
-      }
+      // if (search) {
+      //   where.follower = {
+      //     username: { contains: search, mode: 'insensitive' },
+      //   };
+      // }
 
-      const [followers, totalCount] = await Promise.all([
+      const [followerIds, totalCount] = await Promise.all([
         this.prismaService.follow.findMany({
           where,
           skip: (Number(page) - 1) * Number(limit),
           take: Number(limit),
+          select: { followerId: true },
         }),
         this.prismaService.follow.count({ where }),
       ]);
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
-      // TODO: Generate signedurls for user images
+      const followers = await this.userService.getUserByQuery(
+        {
+          id: { in: followerIds.map((f) => f.followerId) },
+          deletedAt: null,
+        },
+        minimalUserSelect,
+      );
 
       return {
         message: 'Followers retrieved successfully',
         success: true,
         data: {
-          followers,
+          followers: followers.data,
           pagination: {
             totalCount,
             totalPages,
             page: Number(page),
             limit: Number(limit),
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
+            hasNextPage: Number(page) < totalPages,
+            hasPrevPage: Number(page) > 1,
           },
         },
       };
@@ -342,37 +407,44 @@ export class UserConnectionService {
         followerId: user.id,
       };
 
-      if (search) {
-        where.followee = {
-          username: { contains: search, mode: 'insensitive' },
-        };
-      }
+      // if (search) {
+      //   where.followee = {
+      //     username: { contains: search, mode: 'insensitive' },
+      //   };
+      // }
 
-      const [followees, totalCount] = await Promise.all([
+      const [followeeIds, totalCount] = await Promise.all([
         this.prismaService.follow.findMany({
           where,
           skip: (Number(page) - 1) * Number(limit),
           take: Number(limit),
+          select: { followeeId: true },
         }),
         this.prismaService.follow.count({ where }),
       ]);
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
-      // TODO: Generate signedurls for user images
+      const followees = await this.userService.getUserByQuery(
+        {
+          id: { in: followeeIds.map((f) => f.followeeId) },
+          deletedAt: null,
+        },
+        minimalUserSelect,
+      );
 
       return {
         message: 'Followers retrieved successfully',
         success: true,
         data: {
-          followees,
+          followees: followees.data,
           pagination: {
             totalCount,
             totalPages,
             page: Number(page),
             limit: Number(limit),
-            hasNextPage: page < totalPages,
-            hasPrevPage: page > 1,
+            hasNextPage: Number(page) < totalPages,
+            hasPrevPage: Number(page) > 1,
           },
         },
       };
@@ -492,7 +564,6 @@ export class UserConnectionService {
 
   async getRecommendedUsers(user: User): Promise<ApiResponse> {
     try {
-      
       return {
         message: 'Recommended users retrieved successfully',
         success: true,
