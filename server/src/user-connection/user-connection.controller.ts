@@ -140,4 +140,22 @@ export class UserConnectionController {
   ) {
     return this.userConnectionService.removeFollower(user, followerId);
   }
+
+  @Roles(UserRole.USER)
+  @ApiProperty({ title: 'Get Recommended Users' })
+  @Get('recommended-users')
+  async getRecommendedUsers(@CurrentUser() user: User) {
+    return this.userConnectionService.getRecommendedUsers(user);
+  }
+
+  @Roles(UserRole.USER)
+  @ApiProperty({ title: 'Get Mutual Followers' })
+  @ApiParam({ name: 'userId', type: String, required: true })
+  @Get('mutuals/:userId')
+  async getMutualFollowers(
+    @CurrentUser() user: User,
+    @Param('userId') userId: string,
+  ) {
+    return this.userConnectionService.getMutualFollowers(user, userId);
+  }
 }

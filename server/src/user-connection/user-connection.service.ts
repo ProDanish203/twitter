@@ -15,6 +15,7 @@ import {
 import { ApiResponse, QueryParams } from 'src/common/types/types';
 import { GetAllRequests, GetFollowees, GetFollowers } from './types';
 import { UserService } from 'src/user/user.service';
+import { MinimalUserSelect, minimalUserSelect } from 'src/user/queries';
 
 @Injectable()
 export class UserConnectionService {
@@ -484,6 +485,74 @@ export class UserConnectionService {
     } catch (err) {
       throw throwError(
         err.message || 'Failed to remove follower',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getRecommendedUsers(user: User): Promise<ApiResponse> {
+    try {
+      
+      return {
+        message: 'Recommended users retrieved successfully',
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to get recommended users',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getMutualFollowers(
+    user: User,
+    profileUserId: string,
+  ): Promise<ApiResponse<MinimalUserSelect[]>> {
+    try {
+      // Get my following user IDs
+      const myFollowingIds = await this.prismaService.follow.findMany({
+        where: { followerId: user.id },
+        select: { followeeId: true },
+      });
+
+      const myFollowingUserIds = myFollowingIds.map((f) => f.followeeId);
+
+      if (myFollowingUserIds.length === 0) {
+        return {
+          message: 'No mutual users found',
+          success: true,
+          data: [],
+        };
+      }
+
+      // Check which of my following users are also following the profile user
+      const mutualIds = await this.prismaService.follow.findMany({
+        where: {
+          followerId: profileUserId,
+          followeeId: { in: myFollowingUserIds },
+        },
+        select: { followeeId: true },
+      });
+
+      const mutualUserIds = mutualIds.map((f) => f.followeeId);
+
+      const users = await this.userService.getUserByQuery(
+        {
+          id: { in: mutualUserIds },
+          deletedAt: null,
+        },
+        minimalUserSelect,
+      );
+
+      return {
+        message: 'Mutual users retrieved successfully',
+        success: true,
+        data: users.data,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to get mutual users',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

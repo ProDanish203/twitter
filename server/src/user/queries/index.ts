@@ -16,3 +16,14 @@ export const userSelect = {
 export type UserSelect = Prisma.UserGetPayload<{
   select: typeof userSelect;
 }>;
+
+export const minimalUserSelect = {
+  id: true,
+  email: true,
+  username: true,
+  avatar: true,
+} satisfies Prisma.UserSelect;
+
+export type MinimalUserSelect = Prisma.UserGetPayload<{
+  select: typeof minimalUserSelect;
+}>;

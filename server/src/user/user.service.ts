@@ -6,7 +6,7 @@ import { ApiResponse, MulterFile, QueryParams } from 'src/common/types/types';
 import { throwError } from 'src/common/utils/helpers';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UpdateUserNameDto } from './dto/user-common.dto';
-import { userSelect } from './queries';
+import { minimalUserSelect, userSelect } from './queries';
 import {
   GetAllUserResponse,
   StatsAction,
@@ -325,6 +325,31 @@ export class UserService {
     } catch (err) {
       throw throwError(
         err.message || 'Failed to update user stats',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getUserByQuery<T extends Prisma.UserSelect>(
+    where: Prisma.UserWhereInput,
+    select: T = minimalUserSelect as T,
+  ): Promise<ApiResponse<Prisma.UserGetPayload<{ select: T }>[]>> {
+    try {
+      const users = await this.prismaService.user.findMany({
+        where,
+        select,
+      });
+
+      // TODO: Generate signedurls for user images
+
+      return {
+        message: 'Users retrieved successfully',
+        success: true,
+        data: users,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to get users',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
