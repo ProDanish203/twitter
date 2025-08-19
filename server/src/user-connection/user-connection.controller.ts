@@ -95,16 +95,28 @@ export class UserConnectionController {
 
   @Roles(UserRole.USER)
   @ApiProperty({ title: 'Get all followers' })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiQuery({ name: 'search', type: String, required: false })
   @Get('followers/all')
-  async getAllFollowers(@CurrentUser() user: User) {
-    // return this.userConnectionService.getAllFollowers(user.id);
+  async getAllFollowers(
+    @CurrentUser() user: User,
+    @Query() query: QueryParams,
+  ) {
+    return this.userConnectionService.getAllFollowers(user, query);
   }
 
   @Roles(UserRole.USER)
   @ApiProperty({ title: 'Get all followings' })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiQuery({ name: 'search', type: String, required: false })
   @Get('following/all')
-  async getAllFollowings(@CurrentUser() user: User) {
-    // return this.userConnectionService.getAllFollowings(user.id);
+  async getAllFollowings(
+    @CurrentUser() user: User,
+    @Query() query: QueryParams,
+  ) {
+    return this.userConnectionService.getAllFollowings(user, query);
   }
 
   @Roles(UserRole.USER)

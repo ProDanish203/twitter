@@ -12,7 +12,7 @@ import {
   SendFollowRequestDto,
 } from './dto/requests.dto';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
-import { GetAllRequests } from './types';
+import { GetAllRequests, GetFollowees, GetFollowers } from './types';
 
 @Injectable()
 export class UserConnectionService {
@@ -158,7 +158,7 @@ export class UserConnectionService {
     query?: QueryParams,
   ): Promise<ApiResponse<GetAllRequests>> {
     try {
-      const { page = 1, limit = 20, sort } = query;
+      const { page = 1, limit = 20, sort = '' } = query;
 
       const where: Prisma.FollowRequestWhereInput = {
         fromUserId: user.id,
@@ -205,7 +205,7 @@ export class UserConnectionService {
 
   async getReceivedFollowRequests(user: User, query?: QueryParams) {
     try {
-      const { page = 1, limit = 20, sort } = query;
+      const { page = 1, limit = 20, sort = '' } = query;
 
       const where: Prisma.FollowRequestWhereInput = {
         toUserId: user.id,
@@ -279,8 +279,49 @@ export class UserConnectionService {
     }
   }
 
-  async getAllFollowers() {
+  async getAllFollowers(
+    user: User,
+    query?: QueryParams,
+  ): Promise<ApiResponse<GetFollowers>> {
     try {
+      const { page = 1, limit = 20, search = '' } = query;
+
+      const where: Prisma.FollowWhereInput = {
+        followeeId: user.id,
+      };
+
+      if (search) {
+        where.follower = {
+          username: { contains: search, mode: 'insensitive' },
+        };
+      }
+
+      const [followers, totalCount] = await Promise.all([
+        this.prismaService.follow.findMany({
+          where,
+          skip: (Number(page) - 1) * Number(limit),
+          take: Number(limit),
+        }),
+        this.prismaService.follow.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      return {
+        message: 'Followers retrieved successfully',
+        success: true,
+        data: {
+          followers,
+          pagination: {
+            totalCount,
+            totalPages,
+            page: Number(page),
+            limit: Number(limit),
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          },
+        },
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to get all followers',
@@ -289,8 +330,49 @@ export class UserConnectionService {
     }
   }
 
-  async getAllFollowings() {
+  async getAllFollowings(
+    user: User,
+    query?: QueryParams,
+  ): Promise<ApiResponse<GetFollowees>> {
     try {
+      const { page = 1, limit = 20, search = '' } = query;
+
+      const where: Prisma.FollowWhereInput = {
+        followerId: user.id,
+      };
+
+      if (search) {
+        where.followee = {
+          username: { contains: search, mode: 'insensitive' },
+        };
+      }
+
+      const [followees, totalCount] = await Promise.all([
+        this.prismaService.follow.findMany({
+          where,
+          skip: (Number(page) - 1) * Number(limit),
+          take: Number(limit),
+        }),
+        this.prismaService.follow.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      return {
+        message: 'Followers retrieved successfully',
+        success: true,
+        data: {
+          followees,
+          pagination: {
+            totalCount,
+            totalPages,
+            page: Number(page),
+            limit: Number(limit),
+            hasNextPage: page < totalPages,
+            hasPrevPage: page > 1,
+          },
+        },
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to get all followings',
