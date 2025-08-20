@@ -51,7 +51,10 @@ model User {
   following        Follow[]        @relation("UserFollowing")
   followers        Follow[]        @relation("UserFollowers")
 
-  stats UserStats?
+  stats                  UserStats?
+  notifications          Notification[]        @relation("UserNotifications")
+  triggeredNotifications Notification[]        @relation("NotificationActor")
+  notificationSettings   NotificationSettings?
 
   @@index([username])
   @@index([email])
@@ -209,4 +212,108 @@ model UserStats {
   @@index([likesCount])
   @@index([commentsCount])
   @@map("user_stats")
+}
+
+model Notification {
+  id     String @id @unique @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+
+  title   String
+  message String
+  type    NotificationType
+  url     String?
+
+  status   NotificationStatus @default(UNREAD)
+  readAt   DateTime? // Timestamp when the notification was read
+  priority Int                @default(0) // 0 - low, 1 - medium, 2 - high
+
+  actorId String? @db.Uuid // User who performed the action
+  actor   User?   @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  entityType String? // "post", "comment", "user", etc.
+  entityId   String? @db.Uuid
+
+  user User @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, status, createdAt(sort: Desc)]) // Main query: unread notifications for user
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum NotificationType {
+  INFO
+  FOLLOW_REQUEST
+  FOLLOW
+  LIKE
+  COMMENT
+  REPOST
+  POST
+  REPLY
+  MENTION
+  POST_INTERACTION
+  DIRECT_MESSAGE
+  SYSTEM
+}
+
+model NotificationSettings {
+  userId String @id @db.Uuid
+
+  // Email Notification Preferences
+  emailEnabled          Boolean @default(true)
+  emailInfo             Boolean @default(true)
+  emailFollowRequests   Boolean @default(true)
+  emailFollows          Boolean @default(true)
+  emailLikes            Boolean @default(false)
+  emailComments         Boolean @default(true)
+  emailReposts          Boolean @default(false)
+  emailPosts            Boolean @default(false)
+  emailReplies          Boolean @default(true)
+  emailMentions         Boolean @default(true)
+  emailPostInteractions Boolean @default(true)
+  emailDirectMessages   Boolean @default(false)
+  emailSystem           Boolean @default(true)
+
+  // In-app Notification Preferences
+  inAppEnabled          Boolean @default(true)
+  inAppInfo             Boolean @default(true)
+  inAppFollowRequests   Boolean @default(true)
+  inAppFollows          Boolean @default(true)
+  inAppLikes            Boolean @default(true)
+  inAppComments         Boolean @default(true)
+  inAppReposts          Boolean @default(true)
+  inAppPosts            Boolean @default(true)
+  inAppReplies          Boolean @default(true)
+  inAppMentions         Boolean @default(true)
+  inAppPostInteractions Boolean @default(true)
+  inAppDirectMessages   Boolean @default(true)
+  inAppSystem           Boolean @default(true)
+
+  // Push Notification Preferences
+  pushEnabled          Boolean @default(false)
+  pushInfo             Boolean @default(false)
+  pushFollowRequests   Boolean @default(false)
+  pushFollows          Boolean @default(false)
+  pushLikes            Boolean @default(false)
+  pushComments         Boolean @default(false)
+  pushReposts          Boolean @default(false)
+  pushPosts            Boolean @default(false)
+  pushReplies          Boolean @default(false)
+  pushMentions         Boolean @default(false)
+  pushPostInteractions Boolean @default(false)
+  pushDirectMessages   Boolean @default(false)
+  pushSystem           Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
