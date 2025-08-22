@@ -1,4 +1,8 @@
-import { Notification, NotificationSettings } from '@prisma/client';
+import {
+  Notification,
+  NotificationSettings,
+  NotificationType,
+} from '@prisma/client';
 import { PaginationInfo } from 'src/common/types/types';
 import { MinimalUserSelect } from 'src/user/queries';
 
@@ -66,3 +70,27 @@ export type InAppNotificationFields = keyof Pick<
   | 'inAppDirectMessages'
   | 'inAppSystem'
 >;
+
+export enum NOTIFICATION_ENTITY_TYPE {
+  POST = 'post',
+  COMMENT = 'comment',
+  LIKE = 'like',
+  FOLLOW = 'follow',
+}
+
+export enum NOTIFICATION_MEDIUM {
+  EMAIL = 'email',
+  PUSH = 'push',
+  IN_APP = 'inApp',
+}
+
+export type CreateNotificationPayload = {
+  title: string;
+  message: string;
+  type: NotificationType;
+  url?: string;
+  priority?: number;
+  actorId?: string;
+  entityId?: string;
+  entityType?: NOTIFICATION_ENTITY_TYPE;
+};

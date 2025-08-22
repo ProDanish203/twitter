@@ -6,6 +6,8 @@ import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
 import { ConfigService } from '@nestjs/config';
 import { GoogleStrategy } from './strategies/google-oauth.strategy';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   imports: [
@@ -19,8 +21,15 @@ import { GoogleStrategy } from './strategies/google-oauth.strategy';
       }),
       inject: [ConfigService],
     }),
+    UserModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, PrismaService, StorageService, GoogleStrategy],
+  providers: [
+    AuthService,
+    PrismaService,
+    StorageService,
+    GoogleStrategy,
+    NotificationsService,
+  ],
 })
 export class AuthModule {}

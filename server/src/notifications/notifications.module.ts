@@ -8,5 +8,6 @@ import { StorageService } from 'src/common/services/storage.service';
 @Module({
   controllers: [NotificationsController],
   providers: [NotificationsService, PrismaService, UserService, StorageService],
+  exports: [NotificationsService],
 })
 export class NotificationsModule {}

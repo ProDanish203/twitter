@@ -1,20 +1,18 @@
-import {
-  BadRequestException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { throwError } from 'src/common/utils/helpers';
 import {
   NotificationSettings,
   NotificationStatus,
+  NotificationType,
   Prisma,
   User,
 } from '@prisma/client';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
+import { NOTIFICATION_MEDIUM } from './types/index';
 import {
+  CreateNotificationPayload,
   EmailNotificationFields,
   GetAllNotificationsResponse,
   InAppNotificationFields,
@@ -406,4 +404,86 @@ export class NotificationsService {
   }
 
   // Internal Services
+  async createNotification(
+    userId: string,
+    data: CreateNotificationPayload,
+    medium: NOTIFICATION_MEDIUM = NOTIFICATION_MEDIUM.IN_APP,
+  ): Promise<boolean> {
+    try {
+      const { type } = data;
+      const isEnabled = await this._checkNotificationTypeEnabled(
+        userId,
+        type,
+        medium,
+      );
+      if (!isEnabled) return false;
+
+      if (medium === NOTIFICATION_MEDIUM.IN_APP) {
+        await this.prisma.notification.create({
+          data: {
+            userId,
+            ...data,
+          },
+        });
+        return true;
+      }
+    } catch (err) {
+      console.error('Failed to create notification:', err.message);
+      return false;
+    }
+  }
+
+  private async _checkNotificationTypeEnabled(
+    userId: string,
+    type: NotificationType,
+    medium: NOTIFICATION_MEDIUM = NOTIFICATION_MEDIUM.IN_APP,
+  ): Promise<boolean> {
+    try {
+      // Check if the notification type is enabled for the user
+      const userNotificationSettings =
+        await this.prisma.notificationSettings.findUnique({
+          where: { userId },
+        });
+
+      if (!userNotificationSettings) return true;
+
+      const prefix =
+        medium === NOTIFICATION_MEDIUM.EMAIL
+          ? 'email'
+          : medium === NOTIFICATION_MEDIUM.PUSH
+            ? 'push'
+            : 'inApp';
+
+      switch (type) {
+        case 'FOLLOW_REQUEST':
+          return userNotificationSettings[`${prefix}FollowRequests`];
+        case 'FOLLOW':
+          return userNotificationSettings[`${prefix}Follows`];
+        case 'LIKE':
+          return userNotificationSettings[`${prefix}Likes`];
+        case 'COMMENT':
+          return userNotificationSettings[`${prefix}Comments`];
+        case 'REPLY':
+          return userNotificationSettings[`${prefix}Replies`];
+        case 'MENTION':
+          return userNotificationSettings[`${prefix}Mentions`];
+        case 'DIRECT_MESSAGE':
+          return userNotificationSettings[`${prefix}DirectMessages`];
+        case 'POST':
+          return userNotificationSettings[`${prefix}Posts`];
+        case 'POST_INTERACTION':
+          return userNotificationSettings[`${prefix}PostInteractions`];
+        case 'REPOST':
+          return userNotificationSettings[`${prefix}Reposts`];
+        case 'SYSTEM':
+          return true;
+        case 'INFO':
+          return true;
+        default:
+          return true;
+      }
+    } catch (err) {
+      return false;
+    }
+  }
 }

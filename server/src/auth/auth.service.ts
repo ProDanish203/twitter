@@ -38,6 +38,8 @@ import {
 } from 'src/common/lib/constants';
 import * as bcrypt from 'bcryptjs';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { NOTIFICATION_MEDIUM } from 'src/notifications/types';
 
 @Injectable()
 export class AuthService {
@@ -45,6 +47,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly storageService: StorageService,
+    private readonly notificationService: NotificationsService,
   ) {}
 
   async register(
@@ -760,6 +763,16 @@ export class AuthService {
           where: { id: verificationToken.id },
         }),
       ]);
+
+      void this.notificationService.createNotification(
+        verificationToken.userId,
+        {
+          title: 'Password Reset Successful',
+          message: 'Your password has been reset successfully.',
+          type: 'INFO',
+        },
+        NOTIFICATION_MEDIUM.IN_APP,
+      );
 
       return {
         message: 'Password reset successful',
