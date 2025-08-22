@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { UserConnectionModule } from './user-connection/user-connection.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     UserModule,
     UserConnectionModule,
     NotificationsModule,
+    PostsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
