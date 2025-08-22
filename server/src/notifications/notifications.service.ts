@@ -14,8 +14,15 @@ import {
   User,
 } from '@prisma/client';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
-import { GetAllNotificationsResponse } from './types';
-import { minimalUserSelect, MinimalUserSelect } from 'src/user/queries';
+import {
+  EmailNotificationFields,
+  GetAllNotificationsResponse,
+  InAppNotificationFields,
+  NotificationSettingFields,
+  PushNotificationFields,
+} from './types';
+import { minimalUserSelect } from 'src/user/queries';
+import { UpdateNotificationSettingsDto } from './dto/update-notification-settings.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -118,12 +125,22 @@ export class NotificationsService {
     user: User,
   ): Promise<ApiResponse<NotificationSettings>> {
     try {
-      const userNotificaitonSettings =
+      let userNotificaitonSettings =
         await this.prisma.notificationSettings.findUnique({
           where: {
             userId: user.id,
           },
         });
+
+      if (!userNotificaitonSettings) {
+        userNotificaitonSettings =
+          await this.prisma.notificationSettings.create({
+            data: {
+              userId: user.id,
+            },
+          });
+      }
+
       return {
         message: 'Notification settings retrieved successfully',
         success: true,
@@ -158,8 +175,97 @@ export class NotificationsService {
     }
   }
 
-  async updateNotificationSettings(user: User) {
+  async updateNotificationSettings(
+    user: User,
+    dto: UpdateNotificationSettingsDto,
+  ): Promise<ApiResponse<NotificationSettings>> {
     try {
+      const updateData = { ...dto };
+
+      const emailFields: Exclude<
+        EmailNotificationFields,
+        'emailEnabled' | 'emailSystem'
+      >[] = [
+        'emailComments',
+        'emailFollows',
+        'emailLikes',
+        'emailMentions',
+        'emailPosts',
+        'emailReplies',
+        'emailReposts',
+        'emailFollowRequests',
+        'emailInfo',
+        'emailPostInteractions',
+      ];
+
+      const inAppFields: Exclude<
+        InAppNotificationFields,
+        'inAppEnabled' | 'inAppSystem'
+      >[] = [
+        'inAppComments',
+        'inAppFollows',
+        'inAppLikes',
+        'inAppMentions',
+        'inAppPosts',
+        'inAppReplies',
+        'inAppReposts',
+        'inAppFollowRequests',
+        'inAppInfo',
+        'inAppPostInteractions',
+      ];
+
+      const pushFields: Exclude<
+        PushNotificationFields,
+        'pushEnabled' | 'pushSystem'
+      >[] = [
+        'pushComments',
+        'pushFollows',
+        'pushLikes',
+        'pushMentions',
+        'pushPosts',
+        'pushReplies',
+        'pushReposts',
+        'pushFollowRequests',
+        'pushInfo',
+        'pushPostInteractions',
+      ];
+
+      if (updateData.emailEnabled === false) {
+        emailFields.forEach((field) => {
+          updateData[field] = false;
+        });
+      }
+
+      if (updateData.inAppEnabled === false) {
+        inAppFields.forEach((field) => {
+          updateData[field] = false;
+        });
+      }
+
+      if (updateData.pushEnabled === false) {
+        pushFields.forEach((field) => {
+          updateData[field] = false;
+        });
+      }
+
+      const cleanUpdateData = Object.fromEntries(
+        Object.entries(updateData).filter(([_, value]) => value !== undefined),
+      ) as Partial<NotificationSettingFields>;
+
+      const updatedSettings = await this.prisma.notificationSettings.update({
+        where: {
+          userId: user.id,
+        },
+        data: {
+          ...cleanUpdateData,
+        },
+      });
+
+      return {
+        message: 'Notification settings updated successfully',
+        success: true,
+        data: updatedSettings,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to update notification settings',
