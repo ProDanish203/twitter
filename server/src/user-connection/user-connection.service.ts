@@ -7,6 +7,7 @@ import {
   FollowRequest,
   FollowRequestStatus,
   Prisma,
+  NotificationType,
 } from '@prisma/client';
 import {
   RespondToFollowRequestDto,
@@ -16,6 +17,11 @@ import { ApiResponse, QueryParams } from 'src/common/types/types';
 import { GetAllRequests, GetFollowees, GetFollowers } from './types';
 import { UserService } from 'src/user/user.service';
 import { MinimalUserSelect, minimalUserSelect } from 'src/user/queries';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import {
+  NOTIFICATION_ENTITY_TYPE,
+  NOTIFICATION_MEDIUM,
+} from 'src/notifications/types';
 
 @Injectable()
 export class UserConnectionService {
@@ -23,6 +29,7 @@ export class UserConnectionService {
     private readonly prismaService: PrismaService,
     private readonly userService: UserService,
     private readonly storageService: StorageService,
+    private readonly notificationService: NotificationsService,
   ) {}
 
   async sendFollowRequest(
@@ -49,6 +56,7 @@ export class UserConnectionService {
         where: {
           id: toUserId,
         },
+        select: { id: true },
       });
 
       if (!toUser) throw throwError('User not found', HttpStatus.NOT_FOUND);
@@ -60,6 +68,20 @@ export class UserConnectionService {
           toUserId: toUserId,
         },
       });
+
+      await this.notificationService.createNotification(
+        toUser.id,
+        {
+          title: `${user.username} wants to follow you`,
+          message: `${user.name} has sent you a follow request.`,
+          type: NotificationType.FOLLOW_REQUEST,
+          actorId: user.id,
+          entityType: NOTIFICATION_ENTITY_TYPE.FOLLOW_REQUEST,
+          entityId: user.id,
+          url: `users/${user.id}`,
+        },
+        NOTIFICATION_MEDIUM.IN_APP,
+      );
 
       return {
         success: true,
@@ -122,6 +144,19 @@ export class UserConnectionService {
         ]);
 
         // TODO: Send notification to follower
+        await this.notificationService.createNotification(
+          fromUserId,
+          {
+            title: `${user.username} has accepted your follow request`,
+            message: `${user.name} has accepted your follow request.`,
+            type: NotificationType.FOLLOW_REQUEST,
+            actorId: user.id,
+            entityType: NOTIFICATION_ENTITY_TYPE.FOLLOW_REQUEST,
+            entityId: user.id,
+            url: `users/${user.id}`,
+          },
+          NOTIFICATION_MEDIUM.IN_APP,
+        );
       } else if (status === FollowRequestStatus.REJECTED) {
       }
 
@@ -322,6 +357,13 @@ export class UserConnectionService {
       });
 
       // Delete the notification of the toUser
+      void this.prismaService.notification.deleteMany({
+        where: {
+          userId: toUserId,
+          actorId: user.id,
+          type: NotificationType.FOLLOW_REQUEST,
+        },
+      });
 
       return {
         success: true,

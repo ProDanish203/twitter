@@ -76,6 +76,7 @@ export enum NOTIFICATION_ENTITY_TYPE {
   COMMENT = 'comment',
   LIKE = 'like',
   FOLLOW = 'follow',
+  FOLLOW_REQUEST = 'follow_request',
 }
 
 export enum NOTIFICATION_MEDIUM {

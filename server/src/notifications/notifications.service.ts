@@ -405,14 +405,14 @@ export class NotificationsService {
 
   // Internal Services
   async createNotification(
-    userId: string,
+    toUserId: string,
     data: CreateNotificationPayload,
     medium: NOTIFICATION_MEDIUM = NOTIFICATION_MEDIUM.IN_APP,
   ): Promise<boolean> {
     try {
       const { type } = data;
       const isEnabled = await this._checkNotificationTypeEnabled(
-        userId,
+        toUserId,
         type,
         medium,
       );
@@ -421,7 +421,7 @@ export class NotificationsService {
       if (medium === NOTIFICATION_MEDIUM.IN_APP) {
         await this.prisma.notification.create({
           data: {
-            userId,
+            userId: toUserId,
             ...data,
           },
         });
