@@ -7,8 +7,15 @@ import {
 import { PrismaService } from 'src/common/services/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { throwError } from 'src/common/utils/helpers';
-import { NotificationSettings, NotificationStatus, User } from '@prisma/client';
+import {
+  NotificationSettings,
+  NotificationStatus,
+  Prisma,
+  User,
+} from '@prisma/client';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
+import { GetAllNotificationsResponse } from './types';
+import { minimalUserSelect, MinimalUserSelect } from 'src/user/queries';
 
 @Injectable()
 export class NotificationsService {
@@ -17,8 +24,88 @@ export class NotificationsService {
     private readonly userService: UserService,
   ) {}
 
-  async getAllNotifications(user: User, query?: QueryParams) {
+  async getAllNotifications(
+    user: User,
+    query?: QueryParams,
+  ): Promise<ApiResponse<GetAllNotificationsResponse>> {
     try {
+      const { page = 1, limit = 30 } = query;
+
+      const where: Prisma.NotificationWhereInput = {
+        userId: user.id,
+      };
+      const skip = (Number(page) - 1) * Number(limit);
+      const [notifications, totalCount] = await Promise.all([
+        this.prisma.notification.findMany({
+          where,
+          skip,
+          take: Number(limit),
+        }),
+        this.prisma.notification.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      const pagination = {
+        totalCount,
+        totalPages,
+        page: Number(page),
+        limit: Number(limit),
+        hasNextPage: Number(page) < totalPages,
+        hasPrevPage: Number(page) > 1,
+      };
+
+      if (notifications.length === 0) {
+        return {
+          message: 'Notifications retrieved successfully',
+          success: true,
+          data: {
+            notifications: [],
+            pagination,
+          },
+        };
+      }
+
+      // Early return if no actorId is present, without populating the actors
+      if (!notifications.every((notification) => notification.actorId)) {
+        return {
+          message: 'Notifications retrieved successfully',
+          success: true,
+          data: {
+            notifications,
+            pagination,
+          },
+        };
+      }
+
+      // Populate the actors
+      const populatedNotifications = await Promise.all(
+        notifications.map(async (notification) => {
+          if (notification.actorId) {
+            const actorResponse = await this.userService.getUserByQuery(
+              {
+                id: notification.actorId,
+              },
+              minimalUserSelect,
+            );
+            if (actorResponse.success && actorResponse.data)
+              return {
+                ...notification,
+                actor: actorResponse.data,
+              };
+          }
+          return notification;
+        }),
+      );
+
+      return {
+        message: 'Notifications retrieved successfully',
+        success: true,
+        data: {
+          notifications: populatedNotifications,
+          pagination,
+        },
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to get notifications',

@@ -330,7 +330,7 @@ export class UserService {
     }
   }
 
-  async getUserByQuery<T extends Prisma.UserSelect>(
+  async getUsersByQuery<T extends Prisma.UserSelect>(
     where: Prisma.UserWhereInput,
     select: T = minimalUserSelect as T,
   ): Promise<ApiResponse<Prisma.UserGetPayload<{ select: T }>[]>> {
@@ -346,6 +346,31 @@ export class UserService {
         message: 'Users retrieved successfully',
         success: true,
         data: users,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to get users',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getUserByQuery<T extends Prisma.UserSelect>(
+    where: Prisma.UserWhereUniqueInput,
+    select: T = minimalUserSelect as T,
+  ): Promise<ApiResponse<Prisma.UserGetPayload<{ select: T }>>> {
+    try {
+      const user = await this.prismaService.user.findUnique({
+        where,
+        select,
+      });
+
+      // TODO: Generate signedurls for user images
+
+      return {
+        message: 'Users retrieved successfully',
+        success: true,
+        data: user,
       };
     } catch (err) {
       throw throwError(

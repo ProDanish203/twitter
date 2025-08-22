@@ -195,7 +195,7 @@ export class UserConnectionService {
         };
       }
 
-      const sentRequests = await this.userService.getUserByQuery(
+      const sentRequests = await this.userService.getUsersByQuery(
         {
           id: { in: sentRequestIds.map((r) => r.toUserId) },
           deletedAt: null,
@@ -276,7 +276,7 @@ export class UserConnectionService {
         };
       }
 
-      const followRequests = await this.userService.getUserByQuery(
+      const followRequests = await this.userService.getUsersByQuery(
         {
           id: { in: followRequestUserIds.map((r) => r.fromUserId) },
           deletedAt: null,
@@ -365,7 +365,7 @@ export class UserConnectionService {
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
-      const followers = await this.userService.getUserByQuery(
+      const followers = await this.userService.getUsersByQuery(
         {
           id: { in: followerIds.map((f) => f.followerId) },
           deletedAt: null,
@@ -425,7 +425,7 @@ export class UserConnectionService {
 
       const totalPages = Math.ceil(totalCount / Number(limit));
 
-      const followees = await this.userService.getUserByQuery(
+      const followees = await this.userService.getUsersByQuery(
         {
           id: { in: followeeIds.map((f) => f.followeeId) },
           deletedAt: null,
@@ -608,7 +608,7 @@ export class UserConnectionService {
 
       const mutualUserIds = mutualIds.map((f) => f.followeeId);
 
-      const users = await this.userService.getUserByQuery(
+      const users = await this.userService.getUsersByQuery(
         {
           id: { in: mutualUserIds },
           deletedAt: null,
