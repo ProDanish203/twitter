@@ -340,6 +340,9 @@ model Post {
   parentId String? @db.Uuid // For comments/replies
   repostId String? @db.Uuid // For reposts
 
+  wasCommentFor String? @db.Uuid // Stores original parentId if parent was deleted
+  wasRepostFor  String? @db.Uuid // Stores original repostId if original was deleted
+
   // Relations
   author User @relation("UserPosts", fields: [userId], references: [id], onDelete: Cascade)
 
