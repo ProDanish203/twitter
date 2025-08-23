@@ -61,11 +61,10 @@ export class PostsController {
   @ApiQuery({ name: 'limit', type: Number, required: false })
   @Get('user/:userId')
   async getUserPosts(
-    @CurrentUser() user: User,
     @Param('userId') userId: string,
     @Query() query: QueryParams,
   ) {
-    return await this.postsService.getUserPosts(user, userId, query);
+    return await this.postsService.getUserPosts(userId, query);
   }
 
   @UseGuards(AuthGuard)
