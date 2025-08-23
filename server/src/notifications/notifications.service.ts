@@ -43,6 +43,11 @@ export class NotificationsService {
       const [notifications, totalCount] = await Promise.all([
         this.prisma.notification.findMany({
           where,
+          include: {
+            actor: {
+              select: minimalUserSelect,
+            },
+          },
           skip,
           take: Number(limit),
         }),
@@ -86,17 +91,14 @@ export class NotificationsService {
       // Populate the actors
       const populatedNotifications = await Promise.all(
         notifications.map(async (notification) => {
-          if (notification.actorId) {
-            const actorResponse = await this.userService.getUserByQuery(
-              {
-                id: notification.actorId,
-              },
-              minimalUserSelect,
+          if (notification.actor) {
+            const actor = await this.userService.populateUser(
+              notification.actor,
             );
-            if (actorResponse.success && actorResponse.data)
+            if (actor)
               return {
                 ...notification,
-                actor: actorResponse.data,
+                actor,
               };
           }
           return notification;

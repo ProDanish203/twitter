@@ -242,7 +242,7 @@ export class UserConnectionService {
         message: 'Sent follow requests retrieved successfully',
         success: true,
         data: {
-          requests: sentRequests.data,
+          requests: sentRequests,
           pagination: {
             totalCount,
             totalPages,
@@ -323,7 +323,7 @@ export class UserConnectionService {
         message: 'Received follow requests retrieved successfully',
         success: true,
         data: {
-          requests: followRequests.data,
+          requests: followRequests,
           pagination: {
             totalCount,
             totalPages,
@@ -419,7 +419,7 @@ export class UserConnectionService {
         message: 'Followers retrieved successfully',
         success: true,
         data: {
-          followers: followers.data,
+          followers,
           pagination: {
             totalCount,
             totalPages,
@@ -479,7 +479,7 @@ export class UserConnectionService {
         message: 'Followers retrieved successfully',
         success: true,
         data: {
-          followees: followees.data,
+          followees,
           pagination: {
             totalCount,
             totalPages,
@@ -661,7 +661,7 @@ export class UserConnectionService {
       return {
         message: 'Mutual users retrieved successfully',
         success: true,
-        data: users.data,
+        data: users,
       };
     } catch (err) {
       throw throwError(

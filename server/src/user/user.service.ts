@@ -6,7 +6,7 @@ import { ApiResponse, MulterFile, QueryParams } from 'src/common/types/types';
 import { throwError } from 'src/common/utils/helpers';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UpdateUserNameDto } from './dto/user-common.dto';
-import { minimalUserSelect, userSelect } from './queries';
+import { MinimalUserSelect, minimalUserSelect, userSelect } from './queries';
 import {
   GetAllUserResponse,
   StatsAction,
@@ -333,7 +333,7 @@ export class UserService {
   async getUsersByQuery<T extends Prisma.UserSelect>(
     where: Prisma.UserWhereInput,
     select: T = minimalUserSelect as T,
-  ): Promise<ApiResponse<Prisma.UserGetPayload<{ select: T }>[]>> {
+  ): Promise<Prisma.UserGetPayload<{ select: T }>[] | null> {
     try {
       const users = await this.prismaService.user.findMany({
         where,
@@ -342,23 +342,17 @@ export class UserService {
 
       // TODO: Generate signedurls for user images
 
-      return {
-        message: 'Users retrieved successfully',
-        success: true,
-        data: users,
-      };
+      return users;
     } catch (err) {
-      throw throwError(
-        err.message || 'Failed to get users',
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error(err.message);
+      return null;
     }
   }
 
   async getUserByQuery<T extends Prisma.UserSelect>(
     where: Prisma.UserWhereUniqueInput,
     select: T = minimalUserSelect as T,
-  ): Promise<ApiResponse<Prisma.UserGetPayload<{ select: T }>>> {
+  ): Promise<Prisma.UserGetPayload<{ select: T }> | null> {
     try {
       const user = await this.prismaService.user.findUnique({
         where,
@@ -367,16 +361,26 @@ export class UserService {
 
       // TODO: Generate signedurls for user images
 
+      return user;
+    } catch (err) {
+      console.error(err.message);
+      return null;
+    }
+  }
+
+  async populateUser(
+    user: User | MinimalUserSelect,
+  ): Promise<MinimalUserSelect | User> {
+    try {
+      const imageUrl = user.avatar;
+
       return {
-        message: 'Users retrieved successfully',
-        success: true,
-        data: user,
+        ...user,
+        avatar: imageUrl,
       };
     } catch (err) {
-      throw throwError(
-        err.message || 'Failed to get users',
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error(err.message);
+      return user;
     }
   }
 }
