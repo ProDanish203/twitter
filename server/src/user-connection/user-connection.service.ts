@@ -132,12 +132,12 @@ export class UserConnectionService {
         // Update user stats
         await Promise.all([
           this.userService.updateUserStats(
-            user.id,
+            [user.id],
             'followersCount',
             'increment',
           ),
           this.userService.updateUserStats(
-            fromUserId,
+            [fromUserId],
             'followingCount',
             'increment',
           ),
@@ -528,12 +528,12 @@ export class UserConnectionService {
       // Update user stats for both followee and follower
       await Promise.all([
         this.userService.updateUserStats(
-          user.id,
+          [user.id],
           'followingCount',
           'decrement',
         ),
         this.userService.updateUserStats(
-          followeeId,
+          [followeeId],
           'followersCount',
           'decrement',
         ),
@@ -581,12 +581,12 @@ export class UserConnectionService {
       // Update user stats for both follower and followee
       await Promise.all([
         this.userService.updateUserStats(
-          user.id,
+          [user.id],
           'followersCount',
           'decrement',
         ),
         this.userService.updateUserStats(
-          followerId,
+          [followerId],
           'followingCount',
           'decrement',
         ),

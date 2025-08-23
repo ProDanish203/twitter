@@ -303,7 +303,7 @@ export class UserService {
   }
 
   async updateUserStats<T extends UserStatsNumericFields>(
-    userId: string,
+    userIds: string[],
     field: T,
     action: StatsAction,
     count: number = 1,
@@ -316,9 +316,9 @@ export class UserService {
         lastStatsUpdate: new Date(),
       };
 
-      await this.prismaService.userStats.update({
+      await this.prismaService.userStats.updateMany({
         where: {
-          userId,
+          userId: { in: userIds },
         },
         data: updateData,
       });
