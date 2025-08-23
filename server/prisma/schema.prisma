@@ -51,10 +51,16 @@ model User {
   following        Follow[]        @relation("UserFollowing")
   followers        Follow[]        @relation("UserFollowers")
 
-  stats                  UserStats?
+  stats UserStats?
+
+  // Notifications
   notifications          Notification[]        @relation("UserNotifications")
   triggeredNotifications Notification[]        @relation("NotificationActor")
   notificationSettings   NotificationSettings?
+
+  // Posts
+  posts Post[] @relation("UserPosts")
+  likes Like[] @relation("UserLikes")
 
   @@index([username])
   @@index([email])
@@ -201,6 +207,7 @@ model UserStats {
   tweetsCount    Int    @default(0)
   likesCount     Int    @default(0)
   commentsCount  Int    @default(0)
+  postsCount     Int    @default(0)
 
   lastStatsUpdate DateTime @default(now())
 
@@ -316,4 +323,127 @@ model NotificationSettings {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+model Post {
+  id     String @id @unique @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+
+  content String?
+  media   Media[]
+
+  mentions   String[]
+  tags       String[]
+  visibility PostVisibility @default(PUBLIC)
+  postType   PostType       @default(ORIGINAL)
+
+  parentId String? @db.Uuid // For comments/replies
+  repostId String? @db.Uuid // For reposts
+
+  // Relations
+  author User @relation("UserPosts", fields: [userId], references: [id], onDelete: Cascade)
+
+  parent   Post?  @relation("PostComments", fields: [parentId], references: [id])
+  comments Post[] @relation("PostComments")
+
+  originalPost Post?  @relation("PostReposts", fields: [repostId], references: [id])
+  reposts      Post[] @relation("PostReposts")
+
+  likes     Like[]
+  postStats PostStats?
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime? // Soft delete
+
+  @@index([userId, createdAt(sort: Desc)]) // User timeline
+  @@index([parentId, createdAt(sort: Asc)]) // Comments
+  @@index([repostId, createdAt(sort: Desc)]) // Reposts
+  @@index([createdAt(sort: Desc), deletedAt]) // Global timeline
+  @@index([visibility, createdAt(sort: Desc)]) // Public posts
+  @@index([tags, createdAt(sort: Desc)]) // Hashtag search
+  @@index([postType, createdAt(sort: Desc)]) // Filter by post type
+  @@index([deletedAt]) // Soft delete queries
+  @@map("posts")
+}
+
+model PostStats {
+  postId        String @id @db.Uuid
+  likesCount    Int    @default(0)
+  commentsCount Int    @default(0)
+  repostsCount  Int    @default(0)
+  viewsCount    Int    @default(0)
+
+  lastStatsUpdate DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([likesCount(sort: Desc)]) // Popular by likes
+  @@index([commentsCount(sort: Desc)]) // Most discussed
+  @@index([repostsCount(sort: Desc)]) // Most shared
+  @@index([viewsCount(sort: Desc)]) // Most viewed
+  @@map("post_stats")
+}
+
+model Like {
+  id     String @id @unique @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  postId String @db.Uuid
+
+  user User @relation("UserLikes", fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId]) // Prevent duplicate likes
+  @@index([postId, createdAt(sort: Desc)]) // Recent likes on post
+  @@index([userId, createdAt(sort: Desc)]) // User's recent likes
+  @@map("likes")
+}
+
+model Media {
+  id     String    @id @unique @default(uuid()) @db.Uuid
+  postId String    @db.Uuid
+  url    String
+  type   MediaType
+
+  // Metadata
+  filename     String? @db.VarChar(255)
+  size         Int?
+  width        Int?
+  height       Int?
+  duration     Int?
+  thumbnailUrl String? @db.VarChar(500)
+  altText      String? @db.VarChar(500)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@index([type])
+  @@map("media")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  GIF
+  DOCUMENT
+}
+
+enum PostVisibility {
+  PUBLIC
+  FOLLOWERS
+  PRIVATE
+}
+
+enum PostType {
+  ORIGINAL
+  REPOST
+  QUOTE
+  COMMENT
 }
