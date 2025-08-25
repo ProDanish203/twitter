@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { Prisma, User } from '@prisma/client';
+import { Media, Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
@@ -387,6 +387,84 @@ export class PostsService {
         err.message || 'Failed to retrieve commented posts',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async getUserMedia(user: User, query: QueryParams): Promise<ApiResponse> {
+    try {
+      const { page = 1, limit = 20 } = query;
+
+      const where: Prisma.MediaWhereInput = {
+        userId: user.id,
+      };
+
+      const skip = (Number(page) - 1) * Number(limit);
+
+      // Get all the media that user has ever posted
+      const [totalCount, media] = await Promise.all([
+        this.prisma.media.count({ where }),
+        this.prisma.media.findMany({
+          where: { userId: user.id },
+          skip,
+          take: Number(limit),
+          orderBy: { createdAt: 'desc' },
+        }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      const populatedMedia = await this._populateMedias(media);
+
+      return {
+        message: 'User media retrieved successfully',
+        success: true,
+        data: {
+          media: populatedMedia,
+          pagination: {
+            totalCount,
+            totalPages,
+            page: Number(page),
+            limit: Number(limit),
+            hasNextPage: Number(page) < totalPages,
+            hasPrevPage: Number(page) > 1,
+          },
+        },
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to retrieve user media',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async _populateMedias(medias: Media[]): Promise<PopulatedMedia[]> {
+    try {
+      const populatedMedia: PopulatedMedia[] = [];
+
+      const mediaPromises = medias.map(
+        async (media): Promise<PopulatedMedia> => {
+          const [signedUrl, signedThumbnailUrl] = await Promise.all([
+            this.storageService.getImageUrl(media.url),
+            media.thumbnailUrl
+              ? this.storageService.getImageUrl(media.thumbnailUrl)
+              : Promise.resolve(null),
+          ]);
+
+          return {
+            ...media,
+            url: signedUrl,
+            thumbnailUrl: signedThumbnailUrl,
+          };
+        },
+      );
+
+      const resolvedMedia = await Promise.all(mediaPromises);
+      populatedMedia.push(...resolvedMedia);
+
+      return populatedMedia;
+    } catch (err) {
+      return [];
     }
   }
 }

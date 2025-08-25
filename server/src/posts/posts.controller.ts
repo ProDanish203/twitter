@@ -84,6 +84,16 @@ export class PostsController {
 
   @UseGuards(AuthGuard)
   @Roles(...Object.values(UserRole))
+  @ApiProperty({ title: 'Get User Media' })
+  @ApiQuery({ name: 'page', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @Get('media')
+  async getUserMedia(@CurrentUser() user: User, @Query() query: QueryParams) {
+    return await this.postsService.getUserMedia(user, query);
+  }
+
+  @UseGuards(AuthGuard)
+  @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Get Single Post' })
   @ApiParam({ name: 'id', required: true })
   @Get(':id')
