@@ -467,4 +467,51 @@ export class PostsService {
       return [];
     }
   }
+
+  async likePost(user: User, postId: string): Promise<ApiResponse> {
+    try {
+      const likeExists = await this.prisma.like.findUnique({
+        where: {
+          userId_postId: {
+            userId: user.id,
+            postId,
+          },
+        },
+      });
+
+      if (likeExists) {
+        await Promise.all([
+          this.prisma.like.delete({
+            where: { userId_postId: { userId: user.id, postId } },
+          }),
+          this.userService.updateUserStats(
+            [user.id],
+            'likesCount',
+            'decrement',
+            1,
+          ),
+        ]);
+      } else {
+        await Promise.all([
+          this.prisma.like.create({ data: { postId, userId: user.id } }),
+          this.userService.updateUserStats(
+            [user.id],
+            'likesCount',
+            'increment',
+            1,
+          ),
+        ]);
+      }
+
+      return {
+        message: `Post ${likeExists ? 'unliked' : 'liked'} successfully`,
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to like post',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

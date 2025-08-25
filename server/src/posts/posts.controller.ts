@@ -9,6 +9,7 @@ import {
   Query,
   Body,
   Post,
+  Put,
 } from '@nestjs/common';
 import { ApiProperty, ApiTags, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
@@ -47,8 +48,17 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Edit Post' })
+  @ApiParam({ name: 'postId', required: true })
+  @Patch('like/:postId')
+  async likePost(@CurrentUser() user: User, @Param('postId') postId: string) {
+    return await this.postsService.likePost(user, postId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Roles(...Object.values(UserRole))
+  @ApiProperty({ title: 'Edit Post' })
   @ApiParam({ name: 'id', required: true })
-  @Patch(':id')
+  @Put(':id')
   async editPost(@CurrentUser() user: User, @Param('id') id: string) {
     return await this.postsService.editPost(user, id);
   }
