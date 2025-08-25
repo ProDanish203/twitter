@@ -41,3 +41,8 @@ export interface GetUserPostsResponse {
   posts: PopulatedPost[];
   pagination: PaginationInfo;
 }
+
+export interface GetUserLikedPostsResponse {
+  posts: PopulatedPost[];
+  pagination: PaginationInfo;
+}

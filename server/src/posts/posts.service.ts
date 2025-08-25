@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { Post, Prisma, User } from '@prisma/client';
+import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
@@ -9,6 +9,7 @@ import { minimalUserSelect } from 'src/user/queries';
 import { UserService } from 'src/user/user.service';
 import {
   GetSinglePostResponse,
+  GetUserLikedPostsResponse,
   GetUserPostsResponse,
   PopulatedMedia,
   PopulatedPost,
@@ -123,26 +124,6 @@ export class PostsService {
     } catch (err) {
       console.error(err.message);
       return { ...post, stats: post.postStats };
-    }
-  }
-
-  async getAllPosts(user: User, query: QueryParams) {
-    try {
-    } catch (err) {
-      throw throwError(
-        err.message || 'Failed to retrieve posts',
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async getUserFeed(user: User, query: QueryParams) {
-    try {
-    } catch (err) {
-      throw throwError(
-        err.message || 'Failed to retrieve user feed',
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
     }
   }
 
@@ -329,8 +310,60 @@ export class PostsService {
     }
   }
 
-  async getLikedPosts(user: User, query: QueryParams) {
+  async getLikedPosts(
+    user: User,
+    query: QueryParams,
+  ): Promise<ApiResponse<GetUserLikedPostsResponse>> {
     try {
+      const { page = 1, limit = 20 } = query;
+      const where: Prisma.PostWhereInput = {
+        likes: {
+          some: { userId: user.id },
+        },
+      };
+
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const [totalCount, posts] = await Promise.all([
+        this.prisma.post.count({ where }),
+        this.prisma.post.findMany({
+          where,
+          skip,
+          take: Number(limit),
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            media: true,
+            postStats: true,
+            author: {
+              select: minimalUserSelect,
+            },
+          },
+        }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      const populatedPosts = await Promise.all(
+        posts.map((post) => this._populatePost(post)),
+      );
+
+      return {
+        message: 'Liked posts retrieved successfully',
+        success: true,
+        data: {
+          posts: populatedPosts,
+          pagination: {
+            totalCount,
+            totalPages,
+            page: Number(page),
+            limit: Number(limit),
+            hasNextPage: Number(page) < totalPages,
+            hasPrevPage: Number(page) > 1,
+          },
+        },
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to retrieve liked posts',
@@ -339,8 +372,16 @@ export class PostsService {
     }
   }
 
-  async getCommentedPosts(user: User, query: QueryParams) {
+  async getUserReplies(user: User, query: QueryParams): Promise<ApiResponse> {
     try {
+      // Get all the comments user has made,
+      // Get all the retweets
+      // Get all the quote tweets
+
+      return {
+        message: 'User replies retrieved successfully',
+        success: true,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to retrieve commented posts',

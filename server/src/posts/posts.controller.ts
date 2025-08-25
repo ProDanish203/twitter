@@ -32,29 +32,6 @@ export class PostsController {
 
   @UseGuards(AuthGuard)
   @Roles(...Object.values(UserRole))
-  @ApiProperty({ title: 'Get All Posts' })
-  @ApiQuery({ name: 'page', type: Number, required: false })
-  @ApiQuery({ name: 'limit', type: Number, required: false })
-  @ApiQuery({ name: 'sort', type: String, required: false })
-  @ApiQuery({ name: 'filter', type: String, required: false })
-  @ApiQuery({ name: 'search', type: String, required: false })
-  @Get()
-  async getAllPosts(@CurrentUser() user: User, @Query() query: QueryParams) {
-    return await this.postsService.getAllPosts(user, query);
-  }
-
-  @UseGuards(AuthGuard)
-  @Roles(...Object.values(UserRole))
-  @ApiProperty({ title: 'Get User Feed' })
-  @ApiQuery({ name: 'page', type: Number, required: false })
-  @ApiQuery({ name: 'limit', type: Number, required: false })
-  @Get('feed')
-  async getUserFeed(@CurrentUser() user: User, @Query() query: QueryParams) {
-    return await this.postsService.getUserFeed(user, query);
-  }
-
-  @UseGuards(AuthGuard)
-  @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Get User Posts' })
   @ApiParam({ name: 'userId', required: true })
   @ApiQuery({ name: 'page', type: Number, required: false })
@@ -100,12 +77,9 @@ export class PostsController {
   @ApiProperty({ title: 'Get Liked Posts' })
   @ApiQuery({ name: 'page', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
-  @Get('commented')
-  async getCommentedPosts(
-    @CurrentUser() user: User,
-    @Query() query: QueryParams,
-  ) {
-    return await this.postsService.getCommentedPosts(user, query);
+  @Get('replies')
+  async getUserReplies(@CurrentUser() user: User, @Query() query: QueryParams) {
+    return await this.postsService.getUserReplies(user, query);
   }
 
   @UseGuards(AuthGuard)
