@@ -7,6 +7,7 @@ import { UserModule } from './user/user.module';
 import { UserConnectionModule } from './user-connection/user-connection.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PostsModule } from './posts/posts.module';
+import { FeedModule } from './feed/feed.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { PostsModule } from './posts/posts.module';
     UserConnectionModule,
     NotificationsModule,
     PostsModule,
+    FeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
