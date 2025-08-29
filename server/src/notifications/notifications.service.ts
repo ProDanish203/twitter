@@ -322,22 +322,7 @@ export class NotificationsService {
         },
       });
 
-      const unreadCount = await this.prisma.notification.count({
-        where: {
-          userId: user.id,
-          status: NotificationStatus.UNREAD,
-        },
-      });
-
-      if (unreadCount === 0)
-        await this.prisma.user.update({
-          where: {
-            id: user.id,
-          },
-          data: {
-            hasNotifications: false,
-          },
-        });
+      await this.handleUserHasNotifications(user.id);
 
       return {
         message: 'Notification marked as read',
@@ -421,12 +406,19 @@ export class NotificationsService {
       if (!isEnabled) return false;
 
       if (medium === NOTIFICATION_MEDIUM.IN_APP) {
-        await this.prisma.notification.create({
-          data: {
-            userId: toUserId,
-            ...data,
-          },
-        });
+        await Promise.all([
+          this.prisma.notification.create({
+            data: {
+              userId: toUserId,
+              ...data,
+            },
+          }),
+          this.prisma.user.update({
+            where: { id: toUserId },
+            data: { hasNotifications: true },
+          }),
+        ]);
+
         return true;
       }
     } catch (err) {
@@ -487,5 +479,26 @@ export class NotificationsService {
     } catch (err) {
       return false;
     }
+  }
+
+  async handleUserHasNotifications(userId: string) {
+    try {
+      const unreadCount = await this.prisma.notification.count({
+        where: {
+          userId,
+          status: NotificationStatus.UNREAD,
+        },
+      });
+
+      if (unreadCount === 0)
+        await this.prisma.user.update({
+          where: {
+            id: userId,
+          },
+          data: {
+            hasNotifications: false,
+          },
+        });
+    } catch (err) {}
   }
 }

@@ -87,7 +87,7 @@ export enum NOTIFICATION_MEDIUM {
 
 export type CreateNotificationPayload = {
   title: string;
-  message: string;
+  message?: string;
   type: NotificationType;
   url?: string;
   priority?: number;
