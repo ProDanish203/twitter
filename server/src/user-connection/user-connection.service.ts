@@ -1,4 +1,3 @@
-import { StorageService } from './../common/services/storage.service';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { throwError } from 'src/common/utils/helpers';
@@ -22,6 +21,7 @@ import {
   NOTIFICATION_ENTITY_TYPE,
   NOTIFICATION_MEDIUM,
 } from 'src/notifications/types';
+import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
 export class UserConnectionService {

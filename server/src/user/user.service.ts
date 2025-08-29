@@ -1,7 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
-import { StorageService } from 'src/common/services/storage.service';
 import { ApiResponse, MulterFile, QueryParams } from 'src/common/types/types';
 import { throwError } from 'src/common/utils/helpers';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
@@ -12,6 +11,7 @@ import {
   StatsAction,
   UserStatsNumericFields,
 } from './types';
+import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
 export class UserService {

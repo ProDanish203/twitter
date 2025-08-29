@@ -1,12 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/common/services/prisma.service';
-import { StorageService } from 'src/common/services/storage.service';
-import {
-  CheckUsernameDto,
-  LoginUserDto,
-  RegisterUserDto,
-} from './dto/auth.dto';
+import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
 import {
   generateSecureOTP,
   generateSecurePassword,
@@ -40,6 +35,7 @@ import * as bcrypt from 'bcryptjs';
 import { ForgotPasswordDto, ResetPasswordDto } from './dto/password.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { NOTIFICATION_MEDIUM } from 'src/notifications/types';
+import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
 export class AuthService {

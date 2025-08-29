@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { throwError } from 'src/common/utils/helpers';
@@ -398,6 +398,7 @@ export class NotificationsService {
   ): Promise<boolean> {
     try {
       const { type } = data;
+      if (toUserId === data.actorId) return false;
       const isEnabled = await this._checkNotificationTypeEnabled(
         toUserId,
         type,

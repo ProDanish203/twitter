@@ -4,17 +4,12 @@ import { PostsService } from './posts.service';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { UserService } from 'src/user/user.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { StorageService } from 'src/common/services/storage.service';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
+  imports: [StorageModule],
   controllers: [PostsController],
-  providers: [
-    PostsService,
-    PrismaService,
-    UserService,
-    NotificationsService,
-    StorageService,
-  ],
+  providers: [PostsService, PrismaService, UserService, NotificationsService],
   exports: [PostsService],
 })
 export class PostsModule {}

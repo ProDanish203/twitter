@@ -4,8 +4,10 @@ import { UserPrivacyService } from './user-privacy.service';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { NotificationsService } from 'src/notifications/notifications.service';
 import { UserService } from 'src/user/user.service';
+import { StorageModule } from 'src/storage/storage.module';
 
 @Module({
+  imports: [StorageModule],
   controllers: [UserPrivacyController],
   providers: [
     UserPrivacyService,

@@ -1,7 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { Media, NotificationStatus, Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
-import { StorageService } from 'src/common/services/storage.service';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
 import { throwError } from 'src/common/utils/helpers';
 import { NotificationsService } from 'src/notifications/notifications.service';
@@ -19,6 +18,7 @@ import {
   NOTIFICATION_ENTITY_TYPE,
   NOTIFICATION_MEDIUM,
 } from 'src/notifications/types';
+import { StorageService } from 'src/storage/storage.service';
 
 @Injectable()
 export class PostsService {
