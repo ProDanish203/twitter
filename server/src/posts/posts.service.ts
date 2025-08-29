@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { Media, Prisma, User } from '@prisma/client';
+import { Media, NotificationStatus, Prisma, User } from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { StorageService } from 'src/common/services/storage.service';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
@@ -15,6 +15,10 @@ import {
   PopulatedPost,
   PostWithIncludes,
 } from './types';
+import {
+  NOTIFICATION_ENTITY_TYPE,
+  NOTIFICATION_MEDIUM,
+} from 'src/notifications/types';
 
 @Injectable()
 export class PostsService {
@@ -470,35 +474,69 @@ export class PostsService {
 
   async likePost(user: User, postId: string): Promise<ApiResponse> {
     try {
-      const likeExists = await this.prisma.like.findUnique({
-        where: {
-          userId_postId: {
-            userId: user.id,
-            postId,
+      const [likeExists, post] = await Promise.all([
+        this.prisma.like.findUnique({
+          where: {
+            userId_postId: {
+              userId: user.id,
+              postId,
+            },
           },
-        },
-      });
+        }),
+        this.prisma.post.findUnique({
+          where: { id: postId },
+          select: { id: true, userId: true },
+        }),
+      ]);
 
       if (likeExists) {
-        await Promise.all([
-          this.prisma.like.delete({
-            where: { userId_postId: { userId: user.id, postId } },
-          }),
+        await this.prisma.like.delete({
+          where: { userId_postId: { userId: user.id, postId: post.id } },
+        });
+
+        Promise.all([
           this.userService.updateUserStats(
             [user.id],
             'likesCount',
             'decrement',
             1,
           ),
+          // Remove the notification if it was unread
+          this.prisma.notification.deleteMany({
+            where: {
+              status: NotificationStatus.UNREAD,
+              readAt: null,
+              actorId: user.id,
+              entityId: post.id,
+              entityType: NOTIFICATION_ENTITY_TYPE.LIKE,
+            },
+          }),
+          this.noitificationService.handleUserHasNotifications(post.userId),
         ]);
       } else {
-        await Promise.all([
-          this.prisma.like.create({ data: { postId, userId: user.id } }),
+        await this.prisma.like.create({
+          data: { postId: post.id, userId: user.id },
+        });
+
+        // Dont await
+        Promise.all([
           this.userService.updateUserStats(
             [user.id],
             'likesCount',
             'increment',
             1,
+          ),
+          this.noitificationService.createNotification(
+            post.userId,
+            {
+              actorId: user.id,
+              title: `${user.username} liked your post`,
+              url: `/posts/${post.id}`,
+              type: 'LIKE',
+              entityId: post.id,
+              entityType: NOTIFICATION_ENTITY_TYPE.LIKE,
+            },
+            NOTIFICATION_MEDIUM.IN_APP,
           ),
         ]);
       }
