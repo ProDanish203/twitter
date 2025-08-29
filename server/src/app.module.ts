@@ -9,6 +9,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PostsModule } from './posts/posts.module';
 import { FeedModule } from './feed/feed.module';
 import { UserPrivacyModule } from './user-privacy/user-privacy.module';
+import { StorageModule } from './storage/storage.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UserPrivacyModule } from './user-privacy/user-privacy.module';
     PostsModule,
     FeedModule,
     UserPrivacyModule,
+    StorageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

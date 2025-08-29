@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   DeleteObjectCommand,
@@ -9,8 +9,12 @@ import {
   CloudFrontClient,
   CreateInvalidationCommand,
 } from '@aws-sdk/client-cloudfront';
-import { getRandomFilename } from '../utils/helpers';
-import { MulterFile } from './../types/types';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { ApiResponse, MulterFile } from 'src/common/types/types';
+import { getRandomFilename, throwError } from 'src/common/utils/helpers';
+import { GeneratePresignedUrlResponse } from './types';
+import { GeneratePresignedUploadUrlDto } from './dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class StorageService {
@@ -124,5 +128,41 @@ export class StorageService {
 
   getImageUrl(filename: string) {
     return `${this.cloudFrontUrl}/${filename}`;
+  }
+
+  async generatePresignedUploadUrl(
+    user: User,
+    dto: GeneratePresignedUploadUrlDto,
+    expiresIn = 300, // default 5 minutes
+  ): Promise<ApiResponse<GeneratePresignedUrlResponse[]>> {
+    try {
+      const urlPromises = dto.files.map(async (file) => {
+        const key = `uploads/inventory/${getRandomFilename()}-${file.filename}`;
+        const command = new PutObjectCommand({
+          Bucket: this.bucketName,
+          Key: key,
+          ContentType: file.filetype,
+        });
+
+        const uploadUrl = await getSignedUrl(this.s3Client, command, {
+          expiresIn,
+        });
+
+        return { url: uploadUrl, key };
+      });
+      const response: GeneratePresignedUrlResponse[] =
+        await Promise.all(urlPromises);
+
+      return {
+        message: 'Upload url generated',
+        success: true,
+        data: response,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to generate presigned url',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
