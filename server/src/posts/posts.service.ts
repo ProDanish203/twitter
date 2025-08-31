@@ -9,6 +9,7 @@ import {
   MediaType,
   NotificationStatus,
   NotificationType,
+  Post,
   PostType,
   PostVisibility,
   Prisma,
@@ -44,7 +45,7 @@ export class PostsService {
     private readonly storageService: StorageService,
   ) {}
 
-  async createPost(user: User, dto: AddPostDto) {
+  async createPost(user: User, dto: AddPostDto): Promise<ApiResponse<string>> {
     try {
       const { content, media, parentId, repostId, visibility, mentions, tags } =
         dto;
@@ -151,6 +152,12 @@ export class PostsService {
 
       // Update user stats
       this.userService.updateUserStats([user.id], 'postsCount', 'increment', 1);
+
+      return {
+        message: 'Post created successfully',
+        success: true,
+        data: newPost.id,
+      };
     } catch (err) {
       throw throwError(
         err.message || 'Failed to create post',
