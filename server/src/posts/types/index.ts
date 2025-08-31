@@ -51,3 +51,8 @@ export interface GetUserMedia {
   media: PopulatedMedia[];
   pagination: PaginationInfo;
 }
+
+export interface GetUserRepliesResponse {
+  posts: PopulatedPost[];
+  pagination: PaginationInfo;
+}

@@ -1,15 +1,9 @@
-import {
-  BadRequestException,
-  HttpStatus,
-  Injectable,
-  Post,
-} from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   Media,
   MediaType,
   NotificationStatus,
   NotificationType,
-  Post,
   PostType,
   PostVisibility,
   Prisma,
@@ -25,6 +19,7 @@ import {
   GetSinglePostResponse,
   GetUserLikedPostsResponse,
   GetUserPostsResponse,
+  GetUserRepliesResponse,
   PopulatedMedia,
   PopulatedPost,
   PostWithIncludes,
@@ -513,15 +508,70 @@ export class PostsService {
     }
   }
 
-  async getUserReplies(user: User, query: QueryParams): Promise<ApiResponse> {
+  async getUserReplies(
+    user: User,
+    query: QueryParams,
+  ): Promise<ApiResponse<GetUserRepliesResponse>> {
     try {
-      // Get all the comments user has made,
-      // Get all the retweets
-      // Get all the quote tweets
+      const { page = 1, limit = 20 } = query;
+      // Get all the comments, retweets, and quote tweets user has made,
+      const where: Prisma.PostWhereInput = {
+        userId: user.id,
+        OR: [
+          {
+            parentId: {
+              not: null,
+            },
+          },
+          {
+            repostId: {
+              not: null,
+            },
+          },
+        ],
+      };
+
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const [totalCount, posts] = await Promise.all([
+        this.prisma.post.count({ where }),
+        this.prisma.post.findMany({
+          where,
+          skip,
+          take: Number(limit),
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            media: true,
+            postStats: true,
+            author: {
+              select: minimalUserSelect,
+            },
+          },
+        }),
+      ]);
+
+      const totalPages = Math.ceil(totalCount / Number(limit));
+
+      const populatedPosts = await Promise.all(
+        posts.map((post) => this._populatePost(post)),
+      );
 
       return {
         message: 'User replies retrieved successfully',
         success: true,
+        data: {
+          posts: populatedPosts,
+          pagination: {
+            totalCount,
+            totalPages,
+            page: Number(page),
+            limit: Number(limit),
+            hasNextPage: Number(page) < totalPages,
+            hasPrevPage: Number(page) > 1,
+          },
+        },
       };
     } catch (err) {
       throw throwError(
