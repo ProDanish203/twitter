@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PostType, PostVisibility } from '@prisma/client';
+import { PostVisibility } from '@prisma/client';
 import {
   ArrayMaxSize,
   IsArray,
@@ -24,18 +24,6 @@ export class AddPostDto {
     example: ['73485748-image.jpeg', '873748474-video1.mp4'],
   })
   media?: string[];
-
-  @IsOptional({ message: 'Post type is optional' })
-  @IsString({ message: 'Post type must be a string' })
-  @IsEnum(PostType, { message: 'Post type must be a valid enum value' })
-  @ApiProperty({
-    type: String,
-    enum: PostType,
-    required: false,
-    example: PostType.ORIGINAL,
-    default: PostType.ORIGINAL,
-  })
-  postType: PostType = PostType.ORIGINAL;
 
   @IsOptional({ message: 'Mentions are optional' })
   @IsArray({ message: 'Mentions must be an array' })

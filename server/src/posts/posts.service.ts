@@ -1,5 +1,19 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { Media, NotificationStatus, Prisma, User } from '@prisma/client';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  Post,
+} from '@nestjs/common';
+import {
+  Media,
+  MediaType,
+  NotificationStatus,
+  NotificationType,
+  PostType,
+  PostVisibility,
+  Prisma,
+  User,
+} from '@prisma/client';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { ApiResponse, QueryParams } from 'src/common/types/types';
 import { throwError } from 'src/common/utils/helpers';
@@ -19,6 +33,7 @@ import {
   NOTIFICATION_MEDIUM,
 } from 'src/notifications/types';
 import { StorageService } from 'src/storage/storage.service';
+import { AddPostDto } from './dto/create-post.dto';
 
 @Injectable()
 export class PostsService {
@@ -29,14 +44,129 @@ export class PostsService {
     private readonly storageService: StorageService,
   ) {}
 
-  async createPost(user: User) {
+  async createPost(user: User, dto: AddPostDto) {
     try {
+      const { content, media, parentId, repostId, visibility, mentions, tags } =
+        dto;
+
+      const postType = this._determinePostType(dto);
+
+      // Check when its a repost of some post
+      if (postType === PostType.REPOST || postType === PostType.QUOTE) {
+        const repost = await this.prisma.post.findUnique({
+          where: { id: repostId, deletedAt: null },
+          select: { id: true },
+        });
+
+        if (!repost)
+          throw throwError(
+            'Original post not found or is deleted',
+            HttpStatus.NOT_FOUND,
+          );
+      }
+
+      // Check when its a comment for a post
+      if (postType === PostType.COMMENT) {
+        const parent = await this.prisma.post.findUnique({
+          where: { id: parentId, deletedAt: null },
+          select: { id: true },
+        });
+
+        if (!parent)
+          throw throwError(
+            'Parent post not found or is deleted',
+            HttpStatus.NOT_FOUND,
+          );
+      }
+
+      if (
+        postType !== PostType.REPOST &&
+        !content &&
+        (!media || !media.length)
+      ) {
+        throw throwError(
+          'Post content or media is required',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Create the post
+      const newPost = await this.prisma.post.create({
+        data: {
+          userId: user.id,
+          content,
+          parentId,
+          repostId,
+          visibility: visibility || PostVisibility.PUBLIC,
+          mentions,
+          tags,
+          postType: postType || PostType.ORIGINAL,
+        },
+      });
+
+      // Create media for this post
+      if (media && media.length) {
+        await Promise.all(
+          media.map((item) =>
+            this.prisma.media.create({
+              data: {
+                postId: newPost.id,
+                userId: user.id,
+                type: MediaType.IMAGE,
+                url: item,
+              },
+            }),
+          ),
+        );
+      }
+
+      // Handle post mentions
+      if (mentions && mentions.length > 0) {
+        const mentionedUsers = await this.prisma.user.findMany({
+          where: {
+            id: { in: mentions },
+            deletedAt: null,
+          },
+          select: { id: true },
+        });
+
+        // send notification to the mentioned users
+        Promise.all(
+          mentionedUsers.map(({ id }) =>
+            this.noitificationService.createNotification(
+              id,
+              {
+                title: `${user.username} mentioned you in a post`,
+                url: `/posts/${newPost.id}`,
+                actorId: user.id,
+                type: NotificationType.MENTION,
+                entityId: newPost.id,
+                entityType: NOTIFICATION_ENTITY_TYPE.POST,
+              },
+              NOTIFICATION_MEDIUM.IN_APP,
+            ),
+          ),
+        );
+      }
+
+      // Update user stats
+      this.userService.updateUserStats([user.id], 'postsCount', 'increment', 1);
     } catch (err) {
       throw throwError(
         err.message || 'Failed to create post',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  private _determinePostType(dto: AddPostDto): PostType {
+    const { repostId, parentId, content, media } = dto;
+
+    if (parentId) return PostType.COMMENT;
+    else if (repostId && (content || (media && media.length)))
+      return PostType.QUOTE;
+    else if (repostId) return PostType.REPOST;
+    return PostType.ORIGINAL;
   }
 
   async getSinglePost(

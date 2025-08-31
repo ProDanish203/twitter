@@ -17,6 +17,7 @@ import { QueryParams } from 'src/common/types/types';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { AddPostDto } from './dto/create-post.dto';
 
 @ApiTags('Posts')
 @Controller('posts')
@@ -27,8 +28,8 @@ export class PostsController {
   @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Create Post' })
   @Post()
-  async createPost(@CurrentUser() user: User) {
-    return await this.postsService.createPost(user);
+  async createPost(@CurrentUser() user: User, @Body() dto: AddPostDto) {
+    return await this.postsService.createPost(user, dto);
   }
 
   @UseGuards(AuthGuard)
