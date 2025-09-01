@@ -82,12 +82,16 @@ export class AuthService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
 
-      // Create user stats
-      await this.prisma.userStats.create({
-        data: {
-          userId: user.id,
-        },
-      });
+      await Promise.all([
+        // Create user stats
+        this.prisma.userStats.create({
+          data: {
+            userId: user.id,
+          },
+        }),
+        // Create user privacy settings
+        this.prisma.userPrivacy.create({ data: { userId: user.id } }),
+      ]);
 
       const payload: JwtPayload = {
         id: user.id,
@@ -832,12 +836,16 @@ export class AuthService {
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
 
-      // Create user stats
-      await this.prisma.userStats.create({
-        data: {
-          userId: user.id,
-        },
-      });
+      await Promise.all([
+        // Create user stats
+        this.prisma.userStats.create({
+          data: {
+            userId: user.id,
+          },
+        }),
+        // Create user privacy settings
+        this.prisma.userPrivacy.create({ data: { userId: user.id } }),
+      ]);
 
       return user;
     } catch (err) {
