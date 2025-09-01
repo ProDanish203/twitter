@@ -26,7 +26,7 @@ export class PostsController {
 
   @UseGuards(AuthGuard)
   @Roles(...Object.values(UserRole))
-  @ApiProperty({ title: 'Create Post' })
+  @ApiProperty({ title: 'Create Post', type: AddPostDto })
   @Post()
   async createPost(@CurrentUser() user: User, @Body() dto: AddPostDto) {
     return await this.postsService.createPost(user, dto);
@@ -76,31 +76,43 @@ export class PostsController {
   @UseGuards(AuthGuard)
   @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Get Liked Posts' })
+  @ApiParam({ name: 'userId', required: true })
   @ApiQuery({ name: 'page', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
-  @Get('liked')
-  async getLikedPosts(@CurrentUser() user: User, @Query() query: QueryParams) {
-    return await this.postsService.getLikedPosts(user, query);
+  @Get('liked/:userId')
+  async getLikedPosts(
+    @Param('userId') userId: string,
+    @Query() query: QueryParams,
+  ) {
+    return await this.postsService.getLikedPosts(userId, query);
   }
 
   @UseGuards(AuthGuard)
   @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Get Liked Posts' })
+  @ApiParam({ name: 'userId', required: true })
   @ApiQuery({ name: 'page', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
-  @Get('replies')
-  async getUserReplies(@CurrentUser() user: User, @Query() query: QueryParams) {
-    return await this.postsService.getUserReplies(user, query);
+  @Get('replies/:userId')
+  async getUserReplies(
+    @Param('userId') userId: string,
+    @Query() query: QueryParams,
+  ) {
+    return await this.postsService.getUserReplies(userId, query);
   }
 
   @UseGuards(AuthGuard)
   @Roles(...Object.values(UserRole))
   @ApiProperty({ title: 'Get User Media' })
+  @ApiParam({ name: 'userId', required: true })
   @ApiQuery({ name: 'page', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
-  @Get('media')
-  async getUserMedia(@CurrentUser() user: User, @Query() query: QueryParams) {
-    return await this.postsService.getUserMedia(user, query);
+  @Get('media/:userId')
+  async getUserMedia(
+    @Param('userId') userId: string,
+    @Query() query: QueryParams,
+  ) {
+    return await this.postsService.getUserMedia(userId, query);
   }
 
   @UseGuards(AuthGuard)

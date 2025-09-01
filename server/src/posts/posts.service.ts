@@ -447,14 +447,14 @@ export class PostsService {
   }
 
   async getLikedPosts(
-    user: User,
+    userId: string,
     query: QueryParams,
   ): Promise<ApiResponse<GetUserLikedPostsResponse>> {
     try {
       const { page = 1, limit = 20 } = query;
       const where: Prisma.PostWhereInput = {
         likes: {
-          some: { userId: user.id },
+          some: { userId },
         },
       };
 
@@ -509,14 +509,14 @@ export class PostsService {
   }
 
   async getUserReplies(
-    user: User,
+    userId: string,
     query: QueryParams,
   ): Promise<ApiResponse<GetUserRepliesResponse>> {
     try {
       const { page = 1, limit = 20 } = query;
       // Get all the comments, retweets, and quote tweets user has made,
       const where: Prisma.PostWhereInput = {
-        userId: user.id,
+        userId,
         OR: [
           {
             parentId: {
@@ -581,12 +581,12 @@ export class PostsService {
     }
   }
 
-  async getUserMedia(user: User, query: QueryParams): Promise<ApiResponse> {
+  async getUserMedia(userId: string, query: QueryParams): Promise<ApiResponse> {
     try {
       const { page = 1, limit = 20 } = query;
 
       const where: Prisma.MediaWhereInput = {
-        userId: user.id,
+        userId,
       };
 
       const skip = (Number(page) - 1) * Number(limit);
@@ -595,7 +595,7 @@ export class PostsService {
       const [totalCount, media] = await Promise.all([
         this.prisma.media.count({ where }),
         this.prisma.media.findMany({
-          where: { userId: user.id },
+          where,
           skip,
           take: Number(limit),
           orderBy: { createdAt: 'desc' },

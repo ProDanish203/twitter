@@ -14,7 +14,10 @@ export class StorageController {
   constructor(private readonly storageService: StorageService) {}
 
   @Roles(...Object.values(UserRole))
-  @ApiProperty({ title: 'Generate presigned upload urls' })
+  @ApiProperty({
+    title: 'Generate presigned upload urls',
+    type: GeneratePresignedUploadUrlDto,
+  })
   @Post('generate-upload-urls')
   async createPost(
     @CurrentUser() user: User,
