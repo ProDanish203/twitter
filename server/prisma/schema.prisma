@@ -51,7 +51,8 @@ model User {
   following        Follow[]        @relation("UserFollowing")
   followers        Follow[]        @relation("UserFollowers")
 
-  stats UserStats?
+  stats       UserStats?
+  userPrivacy UserPrivacy?
 
   // Notifications
   notifications          Notification[]        @relation("UserNotifications")
@@ -67,6 +68,49 @@ model User {
   @@index([email])
   @@index([isActive])
   @@index([lastActiveAt])
+}
+
+model UserPrivacy {
+  userId      String          @unique @db.Uuid
+  accountType UserAccountType @default(PUBLIC)
+
+  // Content Visibility
+  likesVisible   Boolean @default(true)
+  repliesVisible Boolean @default(true)
+  mediaVisible   Boolean @default(true)
+
+  // Profile Visibility
+  avatarVisible Boolean @default(true)
+  coverVisible  Boolean @default(true)
+  emailVisible  Boolean @default(true)
+  phoneVisible  Boolean @default(true)
+
+  // Interaction Settings
+  allowTagging        Boolean @default(true)
+  allowMentions       Boolean @default(true)
+  allowDirectMessages Boolean @default(true)
+
+  // Activity Settings
+  showOnlineStatus    Boolean @default(true)
+  showLastActiveTime  Boolean @default(false)
+  showTypingIndicator Boolean @default(true)
+  showReadReceipts    Boolean @default(true)
+
+  // Content Filtering
+  filterSensitiveContent Boolean @default(true)
+  filterSpamContent      Boolean @default(true)
+  filterOffensiveContent Boolean @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountType])
+  @@map("user_privacy")
+}
+
+enum UserAccountType {
+  PUBLIC
+  PRIVATE
 }
 
 enum UserRole {
