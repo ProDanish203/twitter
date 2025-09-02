@@ -170,4 +170,70 @@ export class UserPrivacyService {
       );
     }
   }
+
+  async blockUser(user: User, targetUserId: string): Promise<ApiResponse> {
+    try {
+      return {
+        message: ``,
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to block user',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async unblockUser(user: User, targetUserId: string): Promise<ApiResponse> {
+    try {
+      return {
+        message: ``,
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to unblock user',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async reportUser(user: User, targetUserId: string): Promise<ApiResponse> {
+    try {
+      return {
+        message: ``,
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to report user',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async restrictUser(user: User, targetUserId: string): Promise<ApiResponse> {
+    try {
+      return {
+        message: ``,
+        success: true,
+      };
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to report user',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async manageOffensiveKeywords(user: User) {
+    try {
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to manage offensive keywords',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
