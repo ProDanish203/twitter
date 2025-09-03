@@ -26,15 +26,25 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={cn(roboto.className, poppins.variable, "antialiased")}>
+      <body
+        className={cn(
+          roboto.className,
+          poppins.variable,
+          "antialiased overflow-x-clip relative min-w-screen w-full min-h-screen"
+        )}
+      >
         <ReactQueryProvider>
           <Toaster richColors position="top-right" />
           <main>{children}</main>
+          {modal}
+          <div id="modal-root" />
         </ReactQueryProvider>
       </body>
     </html>
