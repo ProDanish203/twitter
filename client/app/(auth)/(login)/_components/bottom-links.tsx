@@ -24,7 +24,7 @@ export const BottomLinks = () => {
     { label: `@${new Date().getFullYear()} X Corp.`, href: "#" },
   ];
   return (
-    <nav className="w-screen flex flex-wrap items-center justify-center gap-2 py-3 px-4">
+    <nav className="w-screen flex flex-wrap items-center justify-center gap-2 py-3 px-4 mb-1">
       {footerLinks.map((link, idx) => (
         <div
           key={idx}
