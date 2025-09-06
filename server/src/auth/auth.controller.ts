@@ -120,7 +120,7 @@ export class AuthController {
     return await this.authService.checkUsername(username);
   }
 
-  @Post('user-exists')
+  @Post('check-user-exists')
   @ApiProperty({
     title: 'Check User Exists',
     type: CheckUserExistsDto,
