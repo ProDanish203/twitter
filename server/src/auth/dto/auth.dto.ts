@@ -103,3 +103,15 @@ export class CheckUsernameDto {
   })
   username: string;
 }
+
+export class CheckUserExistsDto {
+  @IsNotEmpty({ message: 'Identifier is required' })
+  @IsString({ message: 'Identifier must be a string' })
+  @Transform(({ value }) => value.trim().toLowerCase())
+  @ApiProperty({
+    type: String,
+    required: true,
+    example: 'theonlyadmin',
+  })
+  identifier: string;
+}

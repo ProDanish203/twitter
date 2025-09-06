@@ -12,6 +12,7 @@ import {
 import { AuthService } from './auth.service';
 import { ApiProperty, ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import {
+  CheckUserExistsDto,
   CheckUsernameDto,
   LoginUserDto,
   RegisterUserDto,
@@ -117,6 +118,16 @@ export class AuthController {
   @ApiQuery({ name: 'username', type: String, required: true })
   async checkUserrname(@Query('username') username: string) {
     return await this.authService.checkUsername(username);
+  }
+
+  @Post('user-exists')
+  @ApiProperty({
+    title: 'Check User Exists',
+    type: CheckUserExistsDto,
+    required: true,
+  })
+  async checkUserExists(@Body() dto: CheckUserExistsDto) {
+    return await this.authService.checkUsername(dto.identifier);
   }
 
   @UseGuards(GoogleOAuthGuard)

@@ -1,7 +1,11 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/common/services/prisma.service';
-import { LoginUserDto, RegisterUserDto } from './dto/auth.dto';
+import {
+  CheckUserExistsDto,
+  LoginUserDto,
+  RegisterUserDto,
+} from './dto/auth.dto';
 import {
   generateSecureOTP,
   generateSecurePassword,
@@ -931,6 +935,44 @@ export class AuthService {
     } catch (err) {
       throw throwError(
         err.message || 'Failed to check username',
+        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async checkUserExists({
+    identifier,
+  }: CheckUserExistsDto): Promise<ApiResponse<boolean>> {
+    try {
+      // Check if the identifier is an email or username
+      const isEmail = identifier.includes('@');
+      const username = isEmail ? '' : identifier;
+      const email = isEmail ? identifier : '';
+
+      // Find the user
+      const existingUser = await this.prisma.user.findUnique({
+        where: {
+          ...(isEmail ? { email } : { username }),
+        },
+        select: { id: true },
+      });
+
+      if (existingUser) {
+        return {
+          message: 'User exists',
+          success: true,
+          data: true,
+        };
+      } else {
+        return {
+          message: 'User does not exist',
+          success: true,
+          data: false,
+        };
+      }
+    } catch (err) {
+      throw throwError(
+        err.message || 'Failed to check user existence',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
