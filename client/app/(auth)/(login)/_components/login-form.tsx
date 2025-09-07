@@ -1,13 +1,45 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { AppleButton } from "./apple-button";
 import { GoogleButton } from "./google-button";
 import Link from "next/link";
+import { FloatingInput } from "@/components/form/floating-input";
+import { emailSchema, type EmailSchema } from "@/validations/auth.validation";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
 interface LoginFormProps {
   title: string;
+  setActiveTab: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ title }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({
+  title,
+  setActiveTab,
+}) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<EmailSchema>({
+    resolver: zodResolver(emailSchema),
+  });
+
+  const onSubmit: SubmitHandler<EmailSchema> = (data) => {
+    try {
+      const result = emailSchema.safeParse(data);
+      if (result.success) {
+        // Initiate an api call that will check whether the user exists or not
+        setActiveTab(1);
+      } else {
+        toast.error(result.error.issues[0].message);
+      }
+    } catch (err) {
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
+
   return (
     <div className="max-w-sm mx-auto py-8 sm:px-6 px-4">
       <div>
@@ -33,16 +65,30 @@ export const LoginForm: React.FC<LoginFormProps> = ({ title }) => {
         </div>
 
         {/* Email Input */}
-        <div></div>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-6">
+            <FloatingInput
+              register={register}
+              name="email"
+              isError={!!errors.email}
+              errorMessage={errors.email?.message}
+              placeholder="Email"
+              type="email"
+              className=""
+            />
+          </div>
 
-        <div className="overflow-hidden w-full">
-          <Button
-            variant="secondary"
-            className="flex items-center justify-center w-full py-5 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
-          >
-            <span className="text-[#0f1419] text-[15px] font-bold">Next</span>
-          </Button>
-        </div>
+          <div className="overflow-hidden w-full">
+            <Button
+              variant="secondary"
+              type="submit"
+              className="flex items-center justify-center w-full py-5 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
+              disabled={isSubmitting}
+            >
+              <span className="text-[#0f1419] text-[15px] font-bold">Next</span>
+            </Button>
+          </div>
+        </form>
 
         <div className="overflow-hidden w-full mt-6">
           <Button
@@ -55,7 +101,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ title }) => {
           </Button>
         </div>
 
-        <p className="mt-10 block text-neutral-500">
+        <p className="text-[15px] mt-10 block text-neutral-500">
           Don&apos;t have an account?{" "}
           <Link href="/flow/signup" className="text-primary hover:underline">
             Sign up
