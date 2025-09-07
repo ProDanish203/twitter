@@ -12,9 +12,20 @@ type EmailSchema = z.infer<typeof emailSchema>;
 const passwordSchema = z.object({
   password: z
     .string({ message: "Password is required" })
-    .min(6, "Invalid Credentials"),
+    .min(1, "Password is required"),
 });
 
 type PasswordSchema = z.infer<typeof passwordSchema>;
 
-export { emailSchema, passwordSchema, type EmailSchema, type PasswordSchema };
+const loginSchema = emailSchema.merge(passwordSchema);
+
+type LoginSchema = z.infer<typeof loginSchema>;
+
+export {
+  emailSchema,
+  passwordSchema,
+  loginSchema,
+  type EmailSchema,
+  type PasswordSchema,
+  type LoginSchema,
+};
