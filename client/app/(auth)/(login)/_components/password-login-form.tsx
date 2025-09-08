@@ -1,5 +1,6 @@
 "use client";
 import { FloatingInput } from "@/components/form/floating-input";
+import { PasswordInput } from "@/components/form/password-input";
 import { Button } from "@/components/ui/button";
 import { loginSchema, LoginSchema } from "@/validations/auth.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,7 +58,7 @@ export const PasswordLoginForm = () => {
           </div>
 
           <div className="mb">
-            <FloatingInput
+            <PasswordInput
               register={register}
               name="password"
               placeholder="Password"
