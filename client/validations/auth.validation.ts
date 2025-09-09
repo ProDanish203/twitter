@@ -21,10 +21,20 @@ const loginSchema = emailSchema.merge(passwordSchema);
 
 type LoginSchema = z.infer<typeof loginSchema>;
 
+const forgotPasswordSchema = z.object({
+  identifier: z
+    .string({ message: "Email, phone number, or username is required" })
+    .min(1, "Email, phone number, or username is required"),
+});
+
+type ForgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
+
 export {
   emailSchema,
   passwordSchema,
   loginSchema,
+  forgotPasswordSchema,
+  type ForgotPasswordSchema,
   type EmailSchema,
   type PasswordSchema,
   type LoginSchema,
