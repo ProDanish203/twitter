@@ -1,8 +1,10 @@
-import { BottomLinks } from "./_components/bottom-links";
 import Image from "next/image";
-import { GoogleButton } from "./_components/google-button";
-import { AppleButton } from "./_components/apple-button";
-import { CreateAccountButton } from "./_components/create-account-button";
+import {
+  GoogleButton,
+  AppleButton,
+  CreateAccountButton,
+  BottomLinks,
+} from "./_components";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 

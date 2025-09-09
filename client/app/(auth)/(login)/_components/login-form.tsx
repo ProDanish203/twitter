@@ -1,13 +1,13 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { AppleButton } from "./apple-button";
-import { GoogleButton } from "./google-button";
+import { AppleButton, GoogleButton } from "./";
 import Link from "next/link";
 import { FloatingInput } from "@/components/form/floating-input";
 import { emailSchema, type EmailSchema } from "@/validations/auth.validation";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useLoginStore } from "@/store/login.store";
 
 interface LoginFormProps {
   title: string;
@@ -26,16 +26,22 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     resolver: zodResolver(emailSchema),
   });
 
+  const { setEmail } = useLoginStore();
+
   const onSubmit: SubmitHandler<EmailSchema> = (data) => {
     try {
       const result = emailSchema.safeParse(data);
       if (result.success) {
         // Initiate an api call that will check whether the user exists or not
+        // Set the email to the store if the response is successful
+        setEmail(data.email);
+        // If the user exists, move to the password tab
         setActiveTab(1);
       } else {
         toast.error(result.error.issues[0].message);
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.log(err);
       toast.error("Something went wrong. Please try again.");
     }
   };

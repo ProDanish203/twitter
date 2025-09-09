@@ -1,7 +1,7 @@
 "use client";
-import { FloatingInput } from "@/components/form/floating-input";
-import { PasswordInput } from "@/components/form/password-input";
+import { FloatingInput, PasswordInput } from "@/components/form";
 import { Button } from "@/components/ui/button";
+import { useLoginStore } from "@/store/login.store";
 import { loginSchema, LoginSchema } from "@/validations/auth.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -19,9 +19,11 @@ export const PasswordLoginForm = () => {
     resolver: zodResolver(loginSchema),
   });
 
+  const { email } = useLoginStore();
+
   useEffect(() => {
-    setValue("email", "danosiddiqui203@gmail.com");
-  }, []);
+    setValue("email", email);
+  }, [email]);
 
   const onSubmit: SubmitHandler<LoginSchema> = (data) => {
     try {

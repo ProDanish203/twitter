@@ -3,9 +3,8 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { LoginForm } from "@/app/(auth)/(login)/_components/login-form";
+import { LoginForm, PasswordLoginForm } from "@/app/(auth)/(login)/_components";
 import { useState } from "react";
-import { PasswordLoginForm } from "../../_components/password-login-form";
 import { cn } from "@/lib/utils";
 
 const LoginScreen = () => {
