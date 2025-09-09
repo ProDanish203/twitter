@@ -47,7 +47,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   };
 
   return (
-    <div className="max-w-sm mx-auto py-8 sm:px-6 px-4">
+    <div className="max-w-sm w-full mx-auto py-8 sm:px-6 px-4">
       <div>
         <h2 className="md:text-3xl text-2xl break-words font-bold mb-8">
           {title}
@@ -96,7 +96,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </div>
         </form>
 
-        <div className="overflow-hidden w-full mt-6">
+        <Link
+          href="/flow/forgot-password"
+          className="block overflow-hidden w-full mt-6"
+        >
           <Button
             variant="outline"
             className="flex items-center justify-center w-full py-4 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
@@ -105,7 +108,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               Forgot password?
             </span>
           </Button>
-        </div>
+        </Link>
 
         <p className="text-[15px] mt-10 block text-neutral-500">
           Don&apos;t have an account?{" "}

@@ -12,7 +12,7 @@ const LoginScreen = () => {
 
   return (
     <div className="bg-primary/5 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
-      <div className="relative md:w-xl max-h-[90vh] rounded-lg shadow-xl overflow-hidden bg-background">
+      <div className="relative w-xl max-h-[90vh] rounded-lg shadow-xl overflow-hidden bg-background">
         {/* Header with close button */}
         <div className="flex items-start justify-between p-6">
           <Link href="/">
