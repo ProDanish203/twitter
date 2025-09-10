@@ -1,10 +1,5 @@
 import Image from "next/image";
-import {
-  GoogleButton,
-  AppleButton,
-  CreateAccountButton,
-  BottomLinks,
-} from "./_components";
+import { GoogleButton, AppleButton, BottomLinks } from "./_components";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -57,9 +52,19 @@ const AuthScreen = () => {
             </div>
 
             {/* For signup */}
-            <div className="mb-4">
-              <CreateAccountButton />
-            </div>
+            <Link
+              href="/flow/signup"
+              className="block mb-4 overflow-hidden w-full"
+            >
+              <Button
+                variant="secondary"
+                className="flex items-center justify-center w-full py-5 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
+              >
+                <span className="text-[#0f1419] text-[15px] font-bold">
+                  Create account
+                </span>
+              </Button>
+            </Link>
 
             <p className="text-xs text-[#71767b]">
               By signing up, you agree to the
