@@ -1,15 +1,25 @@
 "use client";
 import { FloatingInput } from "@/components/form/floating-input";
 import { Button } from "@/components/ui/button";
+import { VerificationOption } from "@/types/auth";
 import {
   forgotPasswordSchema,
   ForgotPasswordSchema,
 } from "@/validations/auth.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { SetStateAction } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-export const ForgotPasswordForm = () => {
+interface ForgotPasswordFormProps {
+  setActiveTab: React.Dispatch<SetStateAction<number>>;
+  setVerificationOptions: React.Dispatch<SetStateAction<VerificationOption[]>>;
+}
+
+export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
+  setActiveTab,
+  setVerificationOptions,
+}) => {
   const {
     register,
     handleSubmit,
@@ -23,6 +33,8 @@ export const ForgotPasswordForm = () => {
       const result = forgotPasswordSchema.safeParse(data);
       if (result.success) {
         // Initiate an api call that will return the options that user can use to receive the confirmation code based on the provided identifier.
+        setActiveTab(1);
+        // setVerificationOptions()
       } else {
         toast.error(result.error.issues[0].message);
       }
