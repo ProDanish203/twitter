@@ -21,7 +21,7 @@ export const FloatingInput = <T extends FieldValues>({
   ...rest
 }: FloatingInputProps<T>) => {
   return (
-    <div className="relative w-full">
+    <div className="relative w-full overflow-hidden">
       <input
         {...rest}
         type={type}

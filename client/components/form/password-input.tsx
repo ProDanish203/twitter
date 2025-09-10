@@ -23,7 +23,7 @@ export const PasswordInput = <T extends FieldValues>({
   const [showPass, setShowPass] = useState(false);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full overflow-hidden">
       <input
         {...rest}
         type={showPass ? "text" : "password"}
