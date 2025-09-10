@@ -7,7 +7,8 @@ import { useState } from "react";
 import {
   ForgotPasswordConfirmation,
   ForgotPasswordForm,
-} from "@/app/(auth)/(login)/_components";
+  OtpVerificationForm,
+} from "@/components/auth";
 import { VerificationOption } from "@/types/auth";
 
 const ForgotPasswordScreen = () => {
@@ -58,7 +59,7 @@ const ForgotPasswordScreen = () => {
               verificationOptions={verificationOptions}
             />
           )}
-          {activeTab === 2 && <div>Step 3: Show success or error message</div>}
+          {activeTab === 2 && <OtpVerificationForm />}
         </div>
       </div>
     </div>

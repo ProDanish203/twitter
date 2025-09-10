@@ -1,7 +1,6 @@
 "use client";
 
-import { PasswordLoginForm } from "@/app/(auth)/(login)/_components";
-import { LoginForm } from "@/app/(auth)/(login)/_components/login-form";
+import { PasswordLoginForm, LoginForm } from "@/components/auth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
@@ -26,22 +25,18 @@ export default function LoginModal() {
   }, []);
 
   function handleClose() {
+    setActiveTab(0);
     setOpen(false);
     router.back();
   }
 
   useEffect(() => {
-    if (!pathname.includes("login")) {
-      setOpen(false);
-    } else {
-      setOpen(true);
-    }
+    if (!pathname.includes("login")) setOpen(false);
+    else setOpen(true);
   }, [pathname]);
 
   function handleBackdropClick(e: React.MouseEvent) {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
+    if (e.target === e.currentTarget) handleClose();
   }
 
   return createPortal(
