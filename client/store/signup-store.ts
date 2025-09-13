@@ -13,10 +13,10 @@ interface SignupStore {
   setDay: (day: string) => void;
   year: string;
   setYear: (year: string) => void;
-  verificationCode?: string;
-  setVerificationCode?: (code: string) => void;
-  password?: string;
-  setPassword?: (password: string) => void;
+  verificationCode: string;
+  setVerificationCode: (code: string) => void;
+  password: string;
+  setPassword: (password: string) => void;
   getDateOfBirth: () => Date | null;
 }
 
@@ -33,9 +33,9 @@ export const useSignupStore = create<SignupStore>((set, get) => ({
   setDay: (day) => set({ day }),
   year: "",
   setYear: (year) => set({ year }),
-  verificationCode: undefined,
+  verificationCode: "",
   setVerificationCode: (code) => set({ verificationCode: code }),
-  password: undefined,
+  password: "",
   setPassword: (password) => set({ password }),
   getDateOfBirth: () => {
     const { month, day, year } = get();
