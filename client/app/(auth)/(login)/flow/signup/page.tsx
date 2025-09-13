@@ -17,15 +17,19 @@ const SignupScreen = () => {
       <div className="relative w-xl max-h-[90vh] rounded-lg shadow-xl overflow-hidden bg-background">
         {/* Header with close button */}
         <div className="flex items-start justify-between p-6">
-          <Link href="/">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 rounded-full hover:bg-gray-100 cursor-pointer"
-            >
-              <X size={30} className="text-white size-5" />
-            </Button>
-          </Link>
+          {currentStep !== 2 ? (
+            <Link href="/">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 rounded-full hover:bg-gray-100 cursor-pointer"
+              >
+                <X size={30} className="text-white size-5" />
+              </Button>
+            </Link>
+          ) : (
+            <div></div>
+          )}
           <Image
             src="/assets/icons/logo.svg"
             alt="Logo"

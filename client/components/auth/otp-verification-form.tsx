@@ -76,30 +76,30 @@ export const OtpVerificationForm = () => {
               <InputOTPGroup className="w-full">
                 <InputOTPSlot
                   index={0}
-                  className="p-6 py-8 !bg-primary/5 font-bold sm:text-xl w-full"
+                  className="p-6 py-8 !bg-transparent font-bold sm:text-xl w-full"
                 />
                 <InputOTPSlot
                   index={1}
-                  className="p-6 py-8 !bg-primary/5 font-bold sm:text-xl w-full"
+                  className="p-6 py-8 !bg-transparent font-bold sm:text-xl w-full"
                 />
                 <InputOTPSlot
                   index={2}
-                  className="p-6 py-8 !bg-primary/5 font-bold sm:text-xl w-full"
+                  className="p-6 py-8 !bg-transparent font-bold sm:text-xl w-full"
                 />
               </InputOTPGroup>
               <InputOTPSeparator className=" text-neutral-700" />
               <InputOTPGroup className="w-full">
                 <InputOTPSlot
                   index={3}
-                  className="p-6 py-8 !bg-primary/5 font-bold sm:text-xl w-full"
+                  className="p-6 py-8 !bg-transparent font-bold sm:text-xl w-full"
                 />
                 <InputOTPSlot
                   index={4}
-                  className="p-6 py-8 !bg-primary/5 font-bold sm:text-xl w-full"
+                  className="p-6 py-8 !bg-transparent font-bold sm:text-xl w-full"
                 />
                 <InputOTPSlot
                   index={5}
-                  className="p-6 py-8 !bg-primary/5 font-bold sm:text-xl w-full"
+                  className="p-6 py-8 !bg-transparent font-bold sm:text-xl w-full"
                 />
               </InputOTPGroup>
             </InputOTP>

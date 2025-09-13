@@ -53,6 +53,19 @@ const signupSchema = z.object({
 
 type SignupSchema = z.infer<typeof signupSchema>;
 
+const createPasswordSchema = z.object({
+  password: z
+    .string({ message: "Password is required" })
+    .min(8, "Password must be at least 8 characters long")
+    .max(32, "Password must be at most 32 characters long")
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+      "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+    ),
+});
+
+type CreatePasswordSchema = z.infer<typeof createPasswordSchema>;
+
 export {
   emailSchema,
   passwordSchema,
@@ -60,10 +73,12 @@ export {
   forgotPasswordSchema,
   otpSchema,
   signupSchema,
+  createPasswordSchema,
   type ForgotPasswordSchema,
   type EmailSchema,
   type PasswordSchema,
   type LoginSchema,
   type OtpSchema,
   type SignupSchema,
+  type CreatePasswordSchema,
 };

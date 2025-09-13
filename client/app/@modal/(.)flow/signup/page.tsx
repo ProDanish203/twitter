@@ -59,15 +59,19 @@ export default function SignupModal() {
         <div className="relative w-xl max-h-[90vh] rounded-lg shadow-xl overflow-hidden bg-background">
           {/* Header with close button */}
           <div className="flex items-start justify-between p-6">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 rounded-full hover:bg-gray-100 cursor-pointer"
-              type="button"
-              onClick={handleClose}
-            >
-              <X size={30} className="text-white size-5" />
-            </Button>
+            {currentStep !== 2 ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 rounded-full hover:bg-gray-100 cursor-pointer"
+                type="button"
+                onClick={handleClose}
+              >
+                <X size={30} className="text-white size-5" />
+              </Button>
+            ) : (
+              <div></div>
+            )}
 
             <Image
               src="/assets/icons/logo.svg"
