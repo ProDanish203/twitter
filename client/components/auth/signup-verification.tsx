@@ -11,7 +11,7 @@ import {
   InputOTPSlot,
 } from "../ui/input-otp";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { Button } from "../ui/button";
+import { PrimaryButton } from "../common";
 
 export const SignupVerification = () => {
   const { setCurrentStep, setVerificationCode, email } = useSignupStore();
@@ -114,16 +114,12 @@ export const SignupVerification = () => {
           </p>
 
           <div className="overflow-hidden w-full mt-40 mb-8">
-            <Button
-              variant="secondary"
+            <PrimaryButton
+              text="Next"
               type="submit"
-              className="flex items-center justify-center w-full py-6 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
               disabled={isSubmitting || !otpValue || otpValue.length < 6}
-            >
-              <span className="text-[#0f1419] text-[16px] font-extrabold">
-                Next
-              </span>
-            </Button>
+              className="py-6 text-[16px] font-extrabold"
+            />
           </div>
         </form>
       </div>

@@ -1,5 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { AppleButton, GoogleButton } from "@/app/(auth)/(login)/_components";
 import Link from "next/link";
 import { FloatingInput } from "@/components/form/floating-input";
@@ -8,6 +7,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useLoginStore } from "@/store/login.store";
+import { PrimaryButton, SecondaryButton } from "../common";
 
 interface LoginFormProps {
   title: string;
@@ -85,14 +85,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </div>
 
           <div className="overflow-hidden w-full">
-            <Button
-              variant="secondary"
-              type="submit"
-              className="flex items-center justify-center w-full py-5 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
-              disabled={isSubmitting}
-            >
-              <span className="text-[#0f1419] text-[15px] font-bold">Next</span>
-            </Button>
+            <PrimaryButton text="Next" type="submit" disabled={isSubmitting} />
           </div>
         </form>
 
@@ -100,14 +93,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           href="/flow/forgot-password"
           className="block overflow-hidden w-full mt-6"
         >
-          <Button
-            variant="outline"
-            className="flex items-center justify-center w-full py-4 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
-          >
-            <span className="text-white text-[15px] font-bold">
-              Forgot password?
-            </span>
-          </Button>
+          <SecondaryButton text="Forgot password?" />
         </Link>
 
         <p className="text-[15px] mt-10 block text-neutral-500">

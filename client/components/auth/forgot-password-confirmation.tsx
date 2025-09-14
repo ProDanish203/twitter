@@ -1,5 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioCheckItem, RadioGroup } from "@/components/ui/radio-group";
 import { maskEmail, maskPhoneNumber } from "@/lib/utils";
@@ -8,6 +7,7 @@ import { VerificationOption } from "@/types/auth";
 import Link from "next/link";
 import { SetStateAction, useState } from "react";
 import { toast } from "sonner";
+import { PrimaryButton, SecondaryButton } from "../common";
 
 interface ForgotPasswordConfirmationProps {
   setActiveTab: React.Dispatch<SetStateAction<number>>;
@@ -96,24 +96,18 @@ export const ForgotPasswordConfirmation: React.FC<
           </p>
 
           <div className="overflow-hidden w-full mt-40">
-            <Button
-              variant="secondary"
+            <PrimaryButton
+              text="Next"
               type="submit"
-              className="flex items-center justify-center w-full py-6 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
+              className="py-6 text-[16px] font-extrabold"
               disabled={!selectedOption}
-            >
-              <span className="text-[#0f1419] text-[16px] font-extrabold">
-                Next
-              </span>
-            </Button>
+            />
 
             <Link href="/" className="block overflow-hidden w-full mt-4">
-              <Button
-                variant="outline"
-                className="flex items-center justify-center w-full py-6 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
-              >
-                <span className="text-white text-[15px] font-bold">Cancel</span>
-              </Button>
+              <SecondaryButton
+                text="Cancel"
+                className="py-6 text-[15px] font-bold"
+              />
             </Link>
           </div>
         </form>

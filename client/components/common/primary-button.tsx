@@ -3,7 +3,8 @@ import React from "react";
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 
-interface PrimaryButtonProps {
+interface PrimaryButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
   onClick?: () => void;
   className?: string;
@@ -13,6 +14,7 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   text,
   onClick,
   className,
+  ...rest
 }) => {
   return (
     <Button
@@ -24,6 +26,7 @@ export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
       onClick={() => {
         onClick && onClick();
       }}
+      {...rest}
     >
       {text}
     </Button>

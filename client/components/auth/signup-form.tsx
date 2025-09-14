@@ -1,7 +1,6 @@
 "use client";
 import { useSignupStore } from "@/store/signup-store";
 import { FloatingInput } from "../form";
-import { Button } from "../ui/button";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupSchema, signupSchema } from "@/validations/auth.validation";
@@ -14,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { months, days, years } from "@/lib/utils";
+import { PrimaryButton } from "../common";
 
 export const SignupForm = () => {
   const { setCurrentStep } = useSignupStore();
@@ -126,16 +126,12 @@ export const SignupForm = () => {
           </div>
 
           <div className="overflow-hidden w-full mt-32">
-            <Button
-              variant="secondary"
-              type="submit"
-              className="flex items-center justify-center w-full py-6 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
+            <PrimaryButton
+              text="Next"
               disabled={isSubmitting || !isDirty}
-            >
-              <span className="text-[#0f1419] text-[16px] font-extrabold">
-                Next
-              </span>
-            </Button>
+              type="submit"
+              className="py-6 text-[16px] font-extrabold"
+            />
           </div>
         </form>
       </div>

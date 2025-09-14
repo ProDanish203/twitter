@@ -2,7 +2,8 @@
 import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
 
-interface SecondaryButtonProps {
+interface SecondaryButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   text: string;
   onClick?: () => void;
   className?: string;
@@ -12,17 +13,19 @@ export const SecondaryButton: React.FC<SecondaryButtonProps> = ({
   text,
   onClick,
   className,
+  ...rest
 }) => {
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       className={cn(
-        "w-full py-5 h-10 border border-[#2f3336] cursor-pointer text-[15px] font-bold",
+        "flex items-center justify-center w-full py-4 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full text-white text-[15px] font-bold hover:text-white !border-neutral-700",
         className
       )}
       onClick={() => {
         onClick && onClick();
       }}
+      {...rest}
     >
       {text}
     </Button>

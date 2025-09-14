@@ -1,5 +1,4 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import {
   InputOTP,
   InputOTPGroup,
@@ -13,6 +12,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { PrimaryButton, SecondaryButton } from "../common";
 
 export const OtpVerificationForm = () => {
   const { identifier } = useForgotPasswordStore();
@@ -111,27 +111,18 @@ export const OtpVerificationForm = () => {
           </div>
 
           <div className="overflow-hidden w-full mt-40">
-            <Button
-              variant="secondary"
+            <PrimaryButton
+              text="Verify"
               type="submit"
-              className="flex items-center justify-center w-full py-6 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
               disabled={isSubmitting || !otpValue || otpValue.length < 6}
-            >
-              <span className="text-[#0f1419] text-[16px] font-extrabold">
-                Verify
-              </span>
-            </Button>
-
-            <Button
-              variant="outline"
-              type="button"
-              className="mt-4 flex items-center justify-center w-full py-6 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
+              className="py-6 text-[16px] font-extrabold"
+            />
+            <SecondaryButton
+              text="Resend OTP"
               onClick={handleResendOtp}
-            >
-              <span className="text-white text-[15px] font-bold">
-                Resend OTP
-              </span>
-            </Button>
+              type="button"
+              className="py-6 text-[16px] font-bold mt-4"
+            />
           </div>
         </form>
       </div>

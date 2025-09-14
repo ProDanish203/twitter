@@ -7,9 +7,9 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Button } from "../ui/button";
 import { PasswordInput } from "../form";
 import Link from "next/link";
+import { PrimaryButton } from "../common";
 
 export const SignupPasswordForm = () => {
   const { email, setCurrentStep } = useSignupStore();
@@ -91,16 +91,12 @@ export const SignupPasswordForm = () => {
               </Link>
               .
             </p>
-            <Button
-              variant="secondary"
+            <PrimaryButton
+              text="Sign up"
               type="submit"
-              className="flex items-center justify-center w-full py-6 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
               disabled={isSubmitting || !isDirty}
-            >
-              <span className="text-[#0f1419] text-[16px] font-extrabold">
-                Sign up
-              </span>
-            </Button>
+              className="py-6 text-[16px] font-extrabold"
+            />
           </div>
         </form>
       </div>

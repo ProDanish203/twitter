@@ -1,6 +1,5 @@
 "use client";
 import { FloatingInput, PasswordInput } from "@/components/form";
-import { Button } from "@/components/ui/button";
 import { useLoginStore } from "@/store/login.store";
 import { loginSchema, LoginSchema } from "@/validations/auth.validation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,6 +7,7 @@ import Link from "next/link";
 import React, { useEffect } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { PrimaryButton } from "../common";
 
 export const PasswordLoginForm = () => {
   const {
@@ -79,16 +79,12 @@ export const PasswordLoginForm = () => {
           </Link>
 
           <div className="overflow-hidden w-full mt-40">
-            <Button
-              variant="secondary"
+            <PrimaryButton
+              text="Log in"
               type="submit"
-              className="flex items-center justify-center w-full py-6 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
               disabled={isSubmitting}
-            >
-              <span className="text-[#0f1419] text-[16px] font-extrabold">
-                Log in
-              </span>
-            </Button>
+              className="py-6 text-[16px] font-extrabold"
+            />
           </div>
         </form>
 
