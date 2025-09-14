@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { GoogleButton, AppleButton, BottomLinks } from "./_components";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { SecondaryButton, PrimaryButton } from "@/components/common";
 
 const AuthScreen = () => {
   return (
@@ -56,14 +56,7 @@ const AuthScreen = () => {
               href="/flow/signup"
               className="block mb-4 overflow-hidden w-full"
             >
-              <Button
-                variant="secondary"
-                className="flex items-center justify-center w-full py-5 px-4 cursor-pointer hover:bg-secondary/90 h-10 rounded-full"
-              >
-                <span className="text-[#0f1419] text-[15px] font-bold">
-                  Create account
-                </span>
-              </Button>
+              <PrimaryButton text="Create account" />
             </Link>
 
             <p className="text-xs text-[#71767b]">
@@ -85,12 +78,7 @@ const AuthScreen = () => {
           <div className="max-w-xs w-full md:mt-8 mt-4">
             <p className="font-bold text-lg mb-4">Already have an account?</p>
             <Link href={"/flow/login"}>
-              <Button
-                variant="ghost"
-                className="w-full py-5 h-10 border border-[#2f3336] cursor-pointer"
-              >
-                <span className="text-[15px] font-bold">Sign in</span>
-              </Button>
+              <SecondaryButton text="Sign in" />
             </Link>
           </div>
         </div>
