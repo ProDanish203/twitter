@@ -19,3 +19,25 @@ export const checkUserExists = async (identifier: string) => {
     };
   }
 };
+
+export const checkUsernameExists = async (username: string) => {
+  try {
+    const { data } = await api.post("/auth/check-username", {
+      username,
+    });
+    console.log("API_RESPONSE: ", data);
+    if (data && data.success) {
+      return { success: true, response: data.data };
+    } else {
+      return {
+        success: false,
+        response: data?.message || "Something went wrong",
+      };
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      response: error?.response?.data?.message || "Something went wrong",
+    };
+  }
+};
