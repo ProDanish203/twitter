@@ -8,15 +8,24 @@ const MainLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <main className="relative flex min-h-screen max-w-xl mx-auto overflow-x-clip">
-      <div>
-        <Sidebar />
+    <div className="min-h-screen bg-black overflow-x-clip">
+      <div className="relative max-w-7xl mx-auto flex overflow-x-clip">
+        {/* Sidebar - responsive width */}
+        <div className="max-sm:hidden w-20 xl:w-72 flex-shrink-0">
+          <Sidebar />
+        </div>
+
+        {/* Main Content Area - takes remaining space */}
+        <div className="flex-1 lg:pr-0 min-w-0 border-x border-neutral-800">
+          {children}
+        </div>
+
+        {/* Right Sidebar - hidden on mobile/tablet */}
+        <div className="hidden lg:block w-96 flex-shrink-0">
+          <Rightbar />
+        </div>
       </div>
-      <div>{children}</div>
-      <div>
-        <Rightbar />
-      </div>
-    </main>
+    </div>
   );
 };
 
