@@ -1,5 +1,5 @@
 import { sidebarData } from "@/lib/sidebar-data";
-import { FeatherIcon, MoreHorizontal, User, X } from "lucide-react";
+import { FeatherIcon } from "lucide-react";
 import Link from "next/link";
 import { MoreDropdown } from "./more-dropdown";
 import { PrimaryButton } from "../common";
