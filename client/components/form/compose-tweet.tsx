@@ -35,10 +35,21 @@ export const ComposeTweet = () => {
     setValue,
     watch,
     handleSubmit,
-    formState: { isSubmitting, errors, isDirty },
+    formState: { isSubmitting },
   } = useForm<CreatePostSchema>({
     resolver: zodResolver(createPostSchema),
   });
+
+  const handleFilesUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const files = e.target.files;
+      if (files) {
+        // Handle file uploads
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const handleCreatePost: SubmitHandler<CreatePostSchema> = (data) => {
     try {
@@ -91,9 +102,19 @@ export const ComposeTweet = () => {
           {/* Post options */}
           <div className="flex items-center justify-between gap-x-2 pt-2">
             <div className="flex items-center text-primary">
-              <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
+              <input
+                type="file"
+                multiple
+                id="file-upload"
+                className="hidden"
+                onChange={handleFilesUpload}
+              />
+              <label
+                htmlFor="file-upload"
+                className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200"
+              >
                 <ImageIcon className="size-5" />
-              </div>
+              </label>
               <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
                 <Sparkle className="size-4" />
               </div>
@@ -112,7 +133,7 @@ export const ComposeTweet = () => {
                 text="Post"
                 className="px-5 h-8 py-2"
                 type="submit"
-                disabled={isSubmitting || !isDirty}
+                disabled={isSubmitting}
               />
             </div>
           </div>

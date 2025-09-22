@@ -1,3 +1,4 @@
+"use client";
 import { sidebarData } from "@/lib/sidebar-data";
 import { FeatherIcon } from "lucide-react";
 import Link from "next/link";
@@ -7,8 +8,11 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { ProfileDropdown } from "./profile-dropdown";
+import { usePathname } from "next/navigation";
 
 export const Sidebar = () => {
+  const pathname = usePathname();
+
   return (
     <aside className="fixed top-0 h-full w-20 xl:w-72 border-r border-neutral-800 px-2 xl:px-4 py-4 flex flex-col bg-background">
       {/* Logo */}
@@ -26,11 +30,13 @@ export const Sidebar = () => {
       <nav className="mt-2 flex-1 gap-y-2 flex flex-col max-xl:items-center">
         {sidebarData.map((item) => {
           const IconComponent = item.icon;
+          const isActive = pathname.includes(item.href);
           return (
             <Link key={item.href} href={item.href} className="group">
+              <span className="sr-only">{item.title}</span>
               <div
                 className={cn(
-                  "flex items-center justify-center rounded-full group-hover:bg-neutral-900 transition-colors w-fit py-3",
+                  "relative flex items-center justify-center rounded-full group-hover:bg-neutral-900 transition-colors w-fit py-3",
                   "xl:justify-start xl:space-x-4 xl:px-3 xl:pr-5",
                   "max-xl:size-12"
                 )}
@@ -39,6 +45,11 @@ export const Sidebar = () => {
                 <span className="text-xl text-white font-normal hidden xl:block">
                   {item.title}
                 </span>
+                {isActive && (
+                  <div className="bg-background absolute top-2 right-3 size-3 center">
+                    <span className="rounded-full bg-primary size-2" />
+                  </div>
+                )}
               </div>
             </Link>
           );
