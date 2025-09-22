@@ -16,16 +16,16 @@ const HomeScreen = () => {
       {/* Header */}
       <div className="sticky top-0 bg-black/80 backdrop-blur-sm border-b border-neutral-800 z-10">
         <div className="relative w-full mx-auto flex items-center justify-between">
-          {homeTabs.map((tab) => {
+          {homeTabs.map((tab, index) => {
             const isActive = activeTab === tab;
 
             return (
-              <div className="w-full">
+              <div className="w-full" key={`home-tab-${index}`}>
                 <Button
                   variant="tab"
                   role="button"
                   className={cn(
-                    "w-full p-0 h-16 rounded-none cursor-pointer",
+                    "w-full p-0 h-12 rounded-none cursor-pointer",
                     isActive
                       ? "text-white hover:text-white"
                       : "text-neutral-500 hover:text-neutral-500"
@@ -35,7 +35,7 @@ const HomeScreen = () => {
                   <div className="relative h-full flex items-center justify-center">
                     <span
                       className={cn(
-                        "text-[16px]",
+                        "text-[14px]",
                         isActive ? "font-semibold" : "font-medium"
                       )}
                     >

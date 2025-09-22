@@ -9,14 +9,14 @@ const MainLayout = ({
 }>) => {
   return (
     <div className="min-h-screen bg-black overflow-x-clip">
-      <div className="relative max-w-7xl mx-auto flex overflow-x-clip">
+      <div className="relative max-w-7xl mx-auto flex justify-center overflow-x-clip">
         {/* Sidebar - responsive width */}
         <div className="max-sm:hidden w-20 xl:w-72 flex-shrink-0">
           <Sidebar />
         </div>
 
         {/* Main Content Area - takes remaining space */}
-        <div className="flex-1 lg:pr-0 min-w-0 border-x border-neutral-800">
+        <div className="flex-1 lg:pr-0 min-w-0 sm:max-w-xl z-10 border-x border-neutral-800">
           {children}
         </div>
 

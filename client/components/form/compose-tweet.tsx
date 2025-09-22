@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import { Textarea } from "../ui/textarea";
 import { PrimaryButton } from "../common";
@@ -8,15 +9,49 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AtSign, Check, Globe, User } from "lucide-react";
+import {
+  AtSign,
+  CalendarClock,
+  Check,
+  Globe,
+  ImageIcon,
+  MapPin,
+  Smile,
+  Sparkle,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  CreatePostSchema,
+  createPostSchema,
+} from "@/validations/post.validation";
 
 export const ComposeTweet = () => {
-  const [postContent, setPostContent] = useState("");
+  const {
+    register,
+    setValue,
+    watch,
+    handleSubmit,
+    formState: { isSubmitting, errors, isDirty },
+  } = useForm<CreatePostSchema>({
+    resolver: zodResolver(createPostSchema),
+  });
 
-  const handleCreatePost = () => {
+  const handleCreatePost: SubmitHandler<CreatePostSchema> = (data) => {
     try {
+      const result = createPostSchema.safeParse(data);
+      if (result.success) {
+        // Call the API to create the post
+        console.log("Post created:", data);
+        toast.success("Post created successfully!");
+        // Clear the textarea after successful post creation
+        setValue("content", "");
+      } else {
+        toast.error(result.error.issues[0].message);
+      }
     } catch (err) {
       toast.error("Failed to create post. Please try again.");
       console.error("Error creating post:", err);
@@ -37,13 +72,16 @@ export const ComposeTweet = () => {
           />
         </div>
         {/* input area */}
-        <div className="w-[calc(100%_-_40px)] ml-1">
-          <div className="flex flex-col space-y-3 pl-2 border-b border-neutral-800 pb-3">
+        <form
+          onSubmit={handleSubmit(handleCreatePost)}
+          className="w-[calc(100%_-_40px)] ml-1"
+        >
+          <div className="flex flex-col space-y-3 border-b border-neutral-800 pb-3">
             <Textarea
-              className="!bg-transparent resize-none border-none outline-none !text-lg focus:ring-0 focus-visible:ring-0 font-light w-full p-0 rounded-none"
+              className="!bg-transparent min-h-6 max-h-32 overflow-y-auto resize-none border-none outline-none !text-lg focus:ring-0 focus-visible:ring-0 font-light w-full p-0 rounded-none pl-2"
               placeholder="What's happening?"
-              value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
+              rows={0}
+              {...register("content")}
             />
             <div>
               <PostOptionsDropdown />
@@ -52,12 +90,33 @@ export const ComposeTweet = () => {
 
           {/* Post options */}
           <div className="flex items-center justify-between gap-x-2 pt-2">
-            <div></div>
+            <div className="flex items-center text-primary">
+              <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
+                <ImageIcon className="size-5" />
+              </div>
+              <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
+                <Sparkle className="size-4" />
+              </div>
+              <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
+                <Smile className="size-4" />
+              </div>
+              <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
+                <CalendarClock className="size-4" />
+              </div>
+              <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
+                <MapPin className="size-4" />
+              </div>
+            </div>
             <div>
-              <PrimaryButton text="Post" className="px-5 h-7" />
+              <PrimaryButton
+                text="Post"
+                className="px-5 h-8 py-2"
+                type="submit"
+                disabled={isSubmitting || !isDirty}
+              />
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
@@ -91,7 +150,7 @@ const PostOptionsDropdown = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="text-primary flex items-center gap-x-1 focus-visible:outline-none p-0 bg-transparent">
+      <DropdownMenuTrigger className="text-primary flex items-center gap-x-1 focus-visible:outline-none p-0 bg-transparent rounded-full px-3 py-0.5 hover:bg-primary/10 transition-all duration-200 cursor-pointer">
         <Globe className="size-4" />
         <span className="text-sm break-words">
           {selectedOption.selectedText}
