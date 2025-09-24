@@ -13,10 +13,7 @@ import { sidebarMoreLinks } from "@/lib/sidebar-data";
 export const MoreDropdown = () => {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        asChild
-        className="group w-full flex items-center max-xl:justify-center cursor-pointer focus-visible:outline-none"
-      >
+      <DropdownMenuTrigger className="group w-full flex items-center max-xl:justify-center cursor-pointer focus-visible:outline-none">
         <div
           className={cn(
             "flex items-center justify-center rounded-full group-hover:bg-neutral-900 transition-colors w-fit py-3",

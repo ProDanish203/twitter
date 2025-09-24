@@ -28,6 +28,7 @@ import {
   CreatePostSchema,
   createPostSchema,
 } from "@/validations/post.validation";
+import { EmojiPicker } from "./emoji-picker";
 
 export const ComposeTweet = () => {
   const {
@@ -118,9 +119,15 @@ export const ComposeTweet = () => {
               <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
                 <Sparkle className="size-4" />
               </div>
-              <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
+              <EmojiPicker
+                onEmojiClick={(emoji) => {
+                  const currentContent = watch("content") || "";
+                  setValue("content", currentContent + emoji);
+                }}
+                className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200"
+              >
                 <Smile className="size-4" />
-              </div>
+              </EmojiPicker>
               <div className="size-8 p-2 center rounded-full hover:bg-neutral-900 cursor-pointer transition-all duration-200">
                 <CalendarClock className="size-4" />
               </div>
