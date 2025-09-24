@@ -7,6 +7,7 @@ import {
   Users,
   User,
   BriefcaseBusiness,
+  MessageCircle,
 } from "lucide-react";
 
 export const sidebarData = [
@@ -18,4 +19,11 @@ export const sidebarData = [
   { title: "Jobs", icon: BriefcaseBusiness, href: "/jobs" },
   { title: "Communities", icon: Users, href: "/communities" },
   { title: "Profile", icon: User, href: "/profile" },
+];
+
+export const sidebarMoreLinks = [
+  { title: "Chat", icon: MessageCircle, href: "/chat" },
+  { title: "Twitter Ads", icon: BriefcaseBusiness, href: "/ads" },
+  { title: "Analytics", icon: Users, href: "/analytics" },
+  { title: "Settings and Support", icon: User, href: "/settings" },
 ];

@@ -36,20 +36,27 @@ export const Sidebar = () => {
               <span className="sr-only">{item.title}</span>
               <div
                 className={cn(
-                  "relative flex items-center justify-center rounded-full group-hover:bg-neutral-900 transition-colors w-fit py-3",
+                  "flex items-center justify-center rounded-full group-hover:bg-neutral-900 transition-colors w-fit py-3",
                   "xl:justify-start xl:space-x-4 xl:px-3 xl:pr-5",
                   "max-xl:size-12"
                 )}
               >
-                <IconComponent size={26} className="text-white" />
-                <span className="text-xl text-white font-normal hidden xl:block">
+                <div className="relative">
+                  <IconComponent size={26} className="text-white" />
+                  {isActive && (
+                    <div className="bg-background absolute -top-1 -right-0.5 size-3 center">
+                      <span className="rounded-full bg-primary size-2" />
+                    </div>
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "text-xl text-white font-normal hidden xl:block",
+                    isActive && "font-semibold"
+                  )}
+                >
                   {item.title}
                 </span>
-                {isActive && (
-                  <div className="bg-background absolute top-2 right-3 size-3 center">
-                    <span className="rounded-full bg-primary size-2" />
-                  </div>
-                )}
               </div>
             </Link>
           );
