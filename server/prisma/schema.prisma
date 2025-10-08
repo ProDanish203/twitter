@@ -460,10 +460,10 @@ model Media {
 
   // Metadata
   filename     String? @db.VarChar(255)
-  size         Int?
-  width        Int?
-  height       Int?
-  duration     Int?
+  size         Int? // in bytes
+  width        Int? // in pixels
+  height       Int? // in pixels
+  duration     Int? // in seconds
   thumbnailUrl String? @db.VarChar(500)
   altText      String? @db.VarChar(500)
 

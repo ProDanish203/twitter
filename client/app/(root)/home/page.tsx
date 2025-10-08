@@ -1,6 +1,8 @@
 "use client";
 import { ComposeTweet } from "@/components/form/compose-tweet";
+import { PostCard } from "@/components/posts/post-card";
 import { Button } from "@/components/ui/button";
+import { dummyPosts } from "@/lib/dummy-data";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -54,18 +56,13 @@ const HomeScreen = () => {
 
       {/* Main Content - just empty space for now */}
       <div className="min-h-[200vh]">
-        <div className="mb-4 max-lg:pr-6 max-sm:pr-2">
+        <div className="max-lg:pr-6 max-sm:pr-2">
           <ComposeTweet />
         </div>
-        <div className="space-y-4 p-4 max-lg:pr-6 max-sm:pr-6">
-          <div className="h-32 bg-neutral-900 rounded-lg"></div>
-          <div className="h-24 bg-neutral-900 rounded-lg"></div>
-          <div className="h-40 bg-neutral-900 rounded-lg"></div>
-          <div className="h-28 bg-neutral-900 rounded-lg"></div>
-          <div className="h-36 bg-neutral-900 rounded-lg"></div>
-          <div className="h-32 bg-neutral-900 rounded-lg"></div>
-          <div className="h-24 bg-neutral-900 rounded-lg"></div>
-          <div className="h-40 bg-neutral-900 rounded-lg"></div>
+        <div className="">
+          {dummyPosts.map((post) => (
+            <PostCard key={post.id} post={post} type="FEED" />
+          ))}
         </div>
       </div>
     </div>
