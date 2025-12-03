@@ -436,7 +436,6 @@ model PostStats {
 }
 
 model Like {
-  id     String @id @unique @default(uuid()) @db.Uuid
   userId String @db.Uuid
   postId String @db.Uuid
 
@@ -445,7 +444,7 @@ model Like {
 
   createdAt DateTime @default(now())
 
-  @@unique([userId, postId]) // Prevent duplicate likes
+  @@id([userId, postId])
   @@index([postId, createdAt(sort: Desc)]) // Recent likes on post
   @@index([userId, createdAt(sort: Desc)]) // User's recent likes
   @@map("likes")

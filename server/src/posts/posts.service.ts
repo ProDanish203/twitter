@@ -202,8 +202,8 @@ export class PostsService {
       if (!post) throw throwError('Post not found', HttpStatus.NOT_FOUND);
 
       const [populatedPost, populatedComments] = await Promise.all([
-        this._populatePost(post),
-        Promise.all(post.comments.map((c) => this._populatePost(c))),
+        this._populatePost(post, user.id),
+        Promise.all(post.comments.map((c) => this._populatePost(c, user.id))),
       ]);
 
       return {
@@ -224,6 +224,7 @@ export class PostsService {
 
   private async _populatePost(
     post: PostWithIncludes | PostWithIncludes['comments'][0],
+    userId?: string,
   ): Promise<PopulatedPost> {
     try {
       const author = await this.userService.populateUser(post.author);
@@ -250,16 +251,29 @@ export class PostsService {
         const resolvedMedia = await Promise.all(mediaPromises);
         populatedMedia.push(...resolvedMedia);
       }
+      let likedByMe = false;
+      if (userId) {
+        const likeRecord = await this.prisma.like.findUnique({
+          where: {
+            userId_postId: {
+              userId,
+              postId: post.id,
+            },
+          },
+        });
+
+        likedByMe = !!likeRecord;
+      }
 
       return {
         ...post,
         author,
         media: populatedMedia,
-        stats: post.postStats,
+        stats: { ...post.postStats, likedByMe },
       };
     } catch (err) {
       console.error(err.message);
-      return { ...post, stats: post.postStats };
+      return { ...post, stats: { ...post.postStats, likedByMe: false } };
     }
   }
 
@@ -297,7 +311,7 @@ export class PostsService {
       const totalPages = Math.ceil(totalCount / Number(limit));
 
       const populatedPosts = await Promise.all(
-        posts.map((post) => this._populatePost(post)),
+        posts.map((post) => this._populatePost(post, userId)),
       );
 
       return {
@@ -482,7 +496,7 @@ export class PostsService {
       const totalPages = Math.ceil(totalCount / Number(limit));
 
       const populatedPosts = await Promise.all(
-        posts.map((post) => this._populatePost(post)),
+        posts.map((post) => this._populatePost(post, userId)),
       );
 
       return {
@@ -555,7 +569,7 @@ export class PostsService {
       const totalPages = Math.ceil(totalCount / Number(limit));
 
       const populatedPosts = await Promise.all(
-        posts.map((post) => this._populatePost(post)),
+        posts.map((post) => this._populatePost(post, userId)),
       );
 
       return {

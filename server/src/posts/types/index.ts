@@ -7,10 +7,15 @@ export interface PopulatedMedia extends Omit<Media, 'url' | 'thumbnailUrl'> {
   thumbnailUrl: string | null;
 }
 
+export interface PopulatedPostStats extends PostStats {
+  likedByMe: boolean;
+  repostedByMe?: boolean;
+}
+
 export interface PopulatedPost extends Post {
   author: MinimalUserSelect;
   media: PopulatedMedia[];
-  stats: PostStats;
+  stats: PopulatedPostStats;
 }
 
 export interface GetSinglePostResponse {
