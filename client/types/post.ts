@@ -21,6 +21,8 @@ export interface PostStats {
   repostsCount: number;
   viewsCount: number;
   lastStatsUpdate: string;
+  likedByMe: boolean;
+  repostedByMe?: boolean;
 }
 
 export interface Post {
